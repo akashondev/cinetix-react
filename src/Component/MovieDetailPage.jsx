@@ -15,7 +15,7 @@ const MovieDetailPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState("");
   const [theatersLoading, setTheatersLoading] = useState(false);
-  const backendUrl = process.env.PUBLIC_URL_REACT_APP_BACKEND_URL;
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   const fetchMovie = async () => {
     try {
