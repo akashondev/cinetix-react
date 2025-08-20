@@ -15,12 +15,12 @@ const MovieDetailPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState("");
   const [theatersLoading, setTheatersLoading] = useState(false);
-  const backendUrl = process.env.BACKEND_URL;
+  const backendUrl = process.env.PUBLIC_URL_REACT_APP_BACKEND_URL;
 
   const fetchMovie = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/movies/${id}`);
+      const response = await axios.get(`${backendUrl}/movies/${id}`);
 
       if (response.data) {
         setMovie(response.data);
@@ -121,7 +121,7 @@ const MovieDetailPage = () => {
         date: dateStr,
         fullDate: date,
         isoDate: date.toISOString(),
-        year: currentYear, 
+        year: currentYear,
       });
     }
 

@@ -11,7 +11,7 @@ const AdminPage = () => {
   const [formData, setFormData] = useState({
     id: "",
     title: "",
-    image:"",
+    image: "",
     banner: "",
     rating: "",
     duration: "",
@@ -24,7 +24,7 @@ const AdminPage = () => {
     trailerUrl: "",
     category: "nowShowing",
   });
-  const backendUrl = process.env.BACKEND_URL;
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   const handleLogout = () => {
     setIsLoading(true);
@@ -48,7 +48,7 @@ const AdminPage = () => {
 
   const fetchMovies = async () => {
     try {
-      const response = await fetch(`${backendUrl}/api/movies`, {
+      const response = await fetch(`${backendUrl}/movies`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
         },
@@ -80,8 +80,8 @@ const AdminPage = () => {
 
     try {
       const url = editingMovie
-        ? `${backendUrl}/api/movies/${editingMovie._id}`
-        : `${backendUrl}/api/movies`;
+        ? `${backendUrl}/movies/${editingMovie._id}`
+        : `${backendUrl}/movies`;
       const method = editingMovie ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -143,7 +143,7 @@ const AdminPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`${backendUrl}/api/movies/${id}`, {
+      const response = await fetch(`${backendUrl}/movies/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("adminToken")}`,

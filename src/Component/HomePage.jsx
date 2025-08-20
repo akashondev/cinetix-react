@@ -12,7 +12,7 @@ const HomePage = () => {
   const [scrollY, setScrollY] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const backendUrl = process.env.BACKEND_URL;
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   // Refs for scroll animations
   const heroRef = useRef(null);
@@ -23,7 +23,7 @@ const HomePage = () => {
     const fetchMovies = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${backendUrl}/api/movies`);
+        const response = await axios.get(`${backendUrl}/movies`);
 
         // Assuming your backend returns all movies, we'll filter them
         const allMovies = response.data;
@@ -166,7 +166,11 @@ const HomePage = () => {
             ) : nowShowingMovies.length > 0 ? (
               <div className="max-w-[200vh] mx-auto grid [grid-template-columns:repeat(auto-fit,minmax(250px,auto))] gap-8 mt-5 mb-4">
                 {nowShowingMovies.map((movie) => (
-                  <MovieCard key={movie._id} {...movie} category="now-showing"/>
+                  <MovieCard
+                    key={movie._id}
+                    {...movie}
+                    category="now-showing"
+                  />
                 ))}
               </div>
             ) : (
@@ -175,7 +179,6 @@ const HomePage = () => {
               </div>
             )}
           </section>
-
 
           {/* Coming Soon Section */}
           <section className="mb-12">
@@ -210,7 +213,11 @@ const HomePage = () => {
             ) : comingSoonMovies.length > 0 ? (
               <div className="max-w-[200vh] mx-auto grid [grid-template-columns:repeat(auto-fit,minmax(250px,auto))] gap-8 mt-5 mb-4">
                 {comingSoonMovies.map((movie) => (
-                  <MovieCard key={movie._id} {...movie}  category="coming-soon" />
+                  <MovieCard
+                    key={movie._id}
+                    {...movie}
+                    category="coming-soon"
+                  />
                 ))}
               </div>
             ) : (

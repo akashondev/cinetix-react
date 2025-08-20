@@ -17,7 +17,7 @@ const TicketPage = () => {
   const [error, setError] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showQR, setShowQR] = useState({});
-  const backendUrl = process.env.BACKEND_URL;
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   // Toggle QR code display for specific ticket
   const toggleQR = (ticketId) => {
@@ -39,7 +39,7 @@ const TicketPage = () => {
           return;
         }
 
-        const response = await fetch(`${backendUrl}/api/tickets`, {
+        const response = await fetch(`${backendUrl}/tickets`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
