@@ -13,6 +13,8 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
+  const backendUrl = process.env.BACKEND_URL;
+
 
   useEffect(() => {
     // Clear success message when toggling between login and signup
@@ -50,7 +52,7 @@ const LoginPage = () => {
         }
 
         // Send login request to backend
-        const response = await fetch("http://localhost:3000/api/users/login", {
+        const response = await fetch(`${backendUrl}/api/users/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -91,16 +93,13 @@ const LoginPage = () => {
         }
 
         // Send signup request to backend
-        const response = await fetch(
-          "http://localhost:3000/api/users/register",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ name, email, password }),
-          }
-        );
+        const response = await fetch(`${backendUrl}/api/users/register`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name, email, password }),
+        });
 
         const data = await response.json();
 

@@ -15,13 +15,12 @@ const MovieDetailPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState("");
   const [theatersLoading, setTheatersLoading] = useState(false);
+  const backendUrl = process.env.BACKEND_URL;
 
   const fetchMovie = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `http://localhost:3000/api/movies/${id}`
-      );
+      const response = await axios.get(`${backendUrl}/api/movies/${id}`);
 
       if (response.data) {
         setMovie(response.data);

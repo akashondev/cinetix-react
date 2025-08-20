@@ -17,6 +17,7 @@ const TicketPage = () => {
   const [error, setError] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showQR, setShowQR] = useState({});
+  const backendUrl = process.env.BACKEND_URL;
 
   // Toggle QR code display for specific ticket
   const toggleQR = (ticketId) => {
@@ -38,7 +39,7 @@ const TicketPage = () => {
           return;
         }
 
-        const response = await fetch(`http://localhost:3000/api/tickets`, {
+        const response = await fetch(`${backendUrl}/api/tickets`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -406,7 +407,8 @@ const TicketPage = () => {
                       </div>
 
                       {/* Right column with QR code */}
-                      <div className="w-32 h-32 bg-gray-100 rounded flex items-center justify-center cursor-pointer"
+                      <div
+                        className="w-32 h-32 bg-gray-100 rounded flex items-center justify-center cursor-pointer"
                         onClick={() => toggleQR(key)}
                       >
                         {showQR[key] ? (
@@ -419,40 +421,39 @@ const TicketPage = () => {
                             fgColor="#000000"
                           />
                         ) : (
-                            <div className="text-center">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-10 w-10 mx-auto mb-2 text-gray-400"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
-                                />
-                              </svg>
-                              <p className="text-sm text-gray-500">
-                                Click to view QR
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                        <p className="mt-2 text-xs text-center text-gray-500">
-                          Scan at theater entrance
-                        </p>
-                        {showQR[key] && (
-                          <button
-                            className="mt-2 text-xs text-blue-500 hover:underline"
-                            onClick={() => toggleQR(key)}
-                          >
-                            Hide QR Code
-                          </button>
+                          <div className="text-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-10 w-10 mx-auto mb-2 text-gray-400"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                              />
+                            </svg>
+                            <p className="text-sm text-gray-500">
+                              Click to view QR
+                            </p>
+                          </div>
                         )}
                       </div>
-
+                      <p className="mt-2 text-xs text-center text-gray-500">
+                        Scan at theater entrance
+                      </p>
+                      {showQR[key] && (
+                        <button
+                          className="mt-2 text-xs text-blue-500 hover:underline"
+                          onClick={() => toggleQR(key)}
+                        >
+                          Hide QR Code
+                        </button>
+                      )}
+                    </div>
 
                     {/* Ticket footer with perforated edge effect */}
                     <div className="border-t border-dashed border-gray-300 relative">

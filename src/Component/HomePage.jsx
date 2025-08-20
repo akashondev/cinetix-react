@@ -12,6 +12,7 @@ const HomePage = () => {
   const [scrollY, setScrollY] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const backendUrl = process.env.BACKEND_URL;
 
   // Refs for scroll animations
   const heroRef = useRef(null);
@@ -22,7 +23,7 @@ const HomePage = () => {
     const fetchMovies = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("http://localhost:3000/api/movies");
+        const response = await axios.get(`${backendUrl}/api/movies`);
 
         // Assuming your backend returns all movies, we'll filter them
         const allMovies = response.data;

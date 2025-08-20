@@ -11,6 +11,8 @@ const PaymentPage = () => {
   const [emailError, setEmailError] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
+  const backendUrl = process.env.BACKEND_URL;
+
 
   // Get data from location state first, then fallback to localStorage
   const {
@@ -176,7 +178,7 @@ const PaymentPage = () => {
 
       // Save to backend API
       try {
-        const response = await fetch(`http://localhost:3000/api/tickets`, {
+        const response = await fetch(`${backendUrl}/api/tickets`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

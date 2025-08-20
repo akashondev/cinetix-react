@@ -20,6 +20,7 @@ import AdminPage from "./Component/AdminPage";
 function App() {
   const [users, setUsers] = useState([]);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const backendUrl = process.env.BACKEND_URL;
 
   useEffect(() => {
     // Check if admin token exists in localStorage
@@ -30,7 +31,7 @@ function App() {
 
     // Fetch users if needed
     axios
-      .get("http://localhost:3000/users")
+      .get(`${backendUrl}/users`)
       .then((res) => setUsers(res.data))
       .catch((err) => console.error(err));
   }, []);

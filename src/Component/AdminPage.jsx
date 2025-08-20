@@ -24,6 +24,7 @@ const AdminPage = () => {
     trailerUrl: "",
     category: "nowShowing",
   });
+  const backendUrl = process.env.BACKEND_URL;
 
   const handleLogout = () => {
     setIsLoading(true);
@@ -47,7 +48,7 @@ const AdminPage = () => {
 
   const fetchMovies = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/movies", {
+      const response = await fetch(`${backendUrl}/api/movies`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
         },
@@ -79,8 +80,8 @@ const AdminPage = () => {
 
     try {
       const url = editingMovie
-        ? `http://localhost:3000/api/movies/${editingMovie._id}`
-        : "http://localhost:3000/api/movies";
+        ? `${backendUrl}/api/movies/${editingMovie._id}`
+        : `${backendUrl}/api/movies`;
       const method = editingMovie ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -142,7 +143,7 @@ const AdminPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/movies/${id}`, {
+      const response = await fetch(`${backendUrl}/api/movies/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("adminToken")}`,

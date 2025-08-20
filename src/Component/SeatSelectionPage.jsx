@@ -25,6 +25,8 @@ const SeatSelectionPage = () => {
   const [seats, setSeats] = useState([]);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [bookedSeats, setBookedSeats] = useState([]);
+  const backendUrl = process.env.BACKEND_URL;
+
 
   // Constants
   const REFRESH_INTERVAL_TIME = 30000; // Increased to 30 seconds to reduce server load
@@ -127,7 +129,7 @@ const SeatSelectionPage = () => {
       let response;
 
       try {
-        response = await fetch("http://localhost:3000/api/tickets", {
+        response = await fetch(`${backendUrl}/api/tickets`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
