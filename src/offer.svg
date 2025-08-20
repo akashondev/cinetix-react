@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0a"></stop>
+      <stop offset="100%" stop-color="#202030"></stop>
+    </linearGradient>
+    <pattern id="filmStrip" x="0" y="0" width="120" height="80" patternUnits="userSpaceOnUse">
+      <rect width="120" height="80" fill="#111"></rect>
+      <rect x="10" y="10" width="100" height="60" rx="3" fill="#181818"></rect>
+      <rect x="0" y="0" width="10" height="10" fill="#0a0a0a"></rect>
+      <rect x="0" y="70" width="10" height="10" fill="#0a0a0a"></rect>
+      <rect x="110" y="0" width="10" height="10" fill="#0a0a0a"></rect>
+      <rect x="110" y="70" width="10" height="10" fill="#0a0a0a"></rect>
+    </pattern>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur"></feGaussianBlur>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"></feComposite>
+    </filter>
+    <radialGradient id="spotlightGradient" cx="30%" cy="30%" r="70%" fx="30%" fy="30%">
+      <stop offset="0%" stop-color="#5c6ac4" stop-opacity="0.3"></stop>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"></stop>
+    </radialGradient>
+  </defs>
+
+  <rect width="100%" height="100%" fill="url(#bgGradient)"></rect>
+  <rect width="100%" height="100%" fill="url(#filmStrip)" opacity="0.15"></rect>
+
+  <g opacity="0.1">
+    <circle cx="100" cy="500" r="80" stroke="#fff" stroke-width="2" fill="none"></circle>
+    <circle cx="100" cy="500" r="75" stroke="#fff" stroke-width="1" fill="none"></circle>
+    <circle cx="100" cy="500" r="20" stroke="#fff" stroke-width="1" fill="none"></circle>
+    <circle cx="1100" cy="100" r="60" stroke="#fff" stroke-width="2" fill="none"></circle>
+    <circle cx="1100" cy="100" r="55" stroke="#fff" stroke-width="1" fill="none"></circle>
+    <circle cx="1100" cy="100" r="15" stroke="#fff" stroke-width="1" fill="none"></circle>
+    <path d="M0,200 L1200,350" stroke="#fff" stroke-width="1" stroke-dasharray="20,20"></path>
+    <path d="M0,250 L1200,400" stroke="#fff" stroke-width="1" stroke-dasharray="20,20"></path>
+  </g>
+
+  <g opacity="0.6">
+    <circle cx="200" cy="150" r="2" fill="#fff" filter="url(#glow)"></circle>
+    <circle cx="400" cy="80" r="1.5" fill="#fff" filter="url(#glow)"></circle>
+    <circle cx="700" cy="200" r="2" fill="#fff" filter="url(#glow)"></circle>
+    <circle cx="900" cy="120" r="1.5" fill="#fff" filter="url(#glow)"></circle>
+    <circle cx="1050" cy="300" r="2" fill="#fff" filter="url(#glow)"></circle>
+    <circle cx="300" cy="450" r="1" fill="#fff" filter="url(#glow)"></circle>
+    <circle cx="800" cy="500" r="1.5" fill="#fff" filter="url(#glow)"></circle>
+  </g>
+
+  <circle cx="800" cy="150" r="400" fill="url(#spotlightGradient)" opacity="0.7"></circle>
+
+  <g opacity="0.2" transform="translate(950, 480)">
+    <text font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="#5c6ac4" filter="url(#glow)">
+      TUES
+    </text>
+  </g>
+</svg>
