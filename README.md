@@ -1,8 +1,7 @@
-🚀 **Project Title & Tagline**
-================================
+# 🎟️ Cinetix
 
-**Project Title:** Cinetix
-**Tagline:** A React-based web application for tracking movie and TV show metadata.
+A **React**-based ticket booking web application for movies and TV shows.  
+Quickly search shows, select seats, and book tickets with an intuitive UI.
 
 📖 **Description**
 ===============
@@ -17,11 +16,18 @@ Cinetix is built using a modular architecture, allowing developers to easily add
 1. **User Management**: Users can create and manage their own accounts, allowing them to store their movie and TV show metadata.
 2. **Content Management**: Users can add, update, and delete metadata for their favorite shows and movies.
 3. **Search and Filtering**: Users can search for content by title, genre, or actor, and filter results based on various criteria.
-4. **Sorting**: Users can sort content by release date, rating, or popularity.
-5. **Responsive Design**: The application is fully responsive, ensuring a seamless user experience across various devices and screen sizes.
-6. **Customizable**: Users can customize the application's appearance and behavior using a settings panel.
-7. **Real-time Updates**: The application updates in real-time, allowing users to see changes made by other users.
-8. **Error Handling**: The application includes robust error handling, ensuring that users are notified of any errors that occur during usage.
+4. **Responsive Design**: The application is fully responsive, ensuring a seamless user experience across various devices and screen sizes.
+5. **Customizable**: Users can customize the application's appearance and behavior using a settings panel.
+6. **Real-time Updates**: The application updates in real-time, allowing users to see changes made by other users.
+7. **Error Handling**: The application includes robust error handling, ensuring that users are notified of any errors that occur during usage.
+   
+### 🛠️ Admin Features
+1. 🔑 **Admin Login** at `/admin` in Url. 
+2. ➕ **Add Movies** — Enter new titles with details.  
+3. ✏️ **Update Movies** — Edit existing information (title, genre, release date, etc.).  
+4. ❌ **Delete Movies** — Remove outdated or incorrect entries.  
+
+---
 
 🧰 **Tech Stack**
 ================
@@ -81,10 +87,3 @@ N/A (client-side only)
 ==========
 
 [Akash Vishwakarma]
-
-📝 **License**
-==========
-
-MIT License
-
-This README file is licensed under the MIT License. See the LICENSE file for details.
