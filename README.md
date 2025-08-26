@@ -34,9 +34,10 @@ Cinetix is built using a modular architecture, allowing developers to easily add
 
 | **Category** | **Technology** |
 | --- | --- |
-| Front-End | React, JavaScript, CSS, HTML5 |
-| Back-End | N/A (client-side only) |
-| Tools | Webpack, Babel, Tailwind CSS, Jest, Enzyme |
+| Front-End | React, Tailwind CSS|
+| Back-End | Node.js, Express.js |
+| Database | MongoDB |
+| Tools | Webpack, Babel, npm |
 
 📁 **Project Structure**
 =====================
@@ -77,11 +78,6 @@ index.html
 ================
 
 [Insert screenshots of the application in action]
-
-📦 **API Reference**
-==================
-
-N/A (client-side only)
 
 👤 **Author**
 ==========
