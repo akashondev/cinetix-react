@@ -1,4 +1,4 @@
-🚀 **Project Title & Tagline**
+🚀 **Cinetix & A React-based web application for tracking movie and TV show metadata.**
 ================================
 
 **Project Title:** Cinetix
