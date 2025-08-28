@@ -77,7 +77,7 @@ index.html
 📸 **Screenshots**
 ================
 
-[Insert screenshots of the application in action]
+![image alt](https://github.com/akashondev/cinetix-react/blob/8c8259c350518c2ebaf3face2557e935a0eece96/Screenshot%202025-08-28%20191148.png)
 
 👤 **Author**
 ==========
