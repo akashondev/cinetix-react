@@ -5,7 +5,6 @@ import {
   Routes,
   Navigate,
 } from "react-router-dom";
-import axios from "axios";
 
 // Import all components
 import HomePage from "./Component/HomePage";
@@ -18,9 +17,7 @@ import AdminLogin from "./Component/AdminLogin";
 import AdminPage from "./Component/AdminPage";
 
 function App() {
-  const [users, setUsers] = useState([]);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
     // Check if admin token exists in localStorage
@@ -28,16 +25,10 @@ function App() {
     if (token) {
       setIsAdminAuthenticated(true);
     }
-
-    // Fetch users if needed
-    axios
-      .get(`${backendUrl}/users`)
-      .then((res) => setUsers(res.data))
-      .catch((err) => console.error(err));
   }, []);
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<HomePage />} />

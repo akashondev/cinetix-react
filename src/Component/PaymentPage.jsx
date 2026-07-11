@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -12,6 +12,7 @@ const PaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const processingRef = useRef(false);
 
   // Get data from location state first, then fallback to localStorage
   const {
@@ -111,6 +112,8 @@ const PaymentPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (processingRef.current) return;
+
     if (!cardNumber || !cardName || !expiryDate || !cvv || !email) {
       alert("Please fill in all fields");
       return;
@@ -123,6 +126,7 @@ const PaymentPage = () => {
       return;
     }
 
+    processingRef.current = true;
     setIsProcessing(true);
 
     try {
@@ -160,14 +164,15 @@ const PaymentPage = () => {
         movie_title: movie.title,
         seats: selectedSeats,
         cinema: theater.name,
+        screen: theater.screen || bookingData.theaterScreen || "Screen 1",
         time: selectedTime || bookingData.showTime,
-        date: new Date(selectedDate || bookingData.dateDisplay).toISOString(),
+        date: selectedDate || bookingData.dateISO,
         day: new Date(
-          selectedDate || bookingData.dateDisplay
+          selectedDate || bookingData.dateISO
         ).toLocaleDateString("en-US", {
           weekday: "long",
         }),
-        price: total,
+        price: ticketPrice,
         location: theater.address,
         session_id: bookingConfirmation.id,
       };
@@ -208,9 +213,13 @@ const PaymentPage = () => {
             return;
           }
 
-          throw new Error(
-            responseData.message || `Server error: ${response.status}`
-          );
+          if (response.status === 409) {
+            processingRef.current = false;
+            setIsProcessing(false);
+            navigate("/seats", { state: { bookingError: responseData.message, conflictingSeats: responseData.conflictingSeats || [] } });
+            return;
+          }
+          throw new Error(responseData.message || `Server error: ${response.status}`);
         }
 
         console.log("Ticket saved successfully:", responseData);
@@ -225,12 +234,6 @@ const PaymentPage = () => {
           "bookingConfirmation",
           JSON.stringify(finalBookingConfirmation)
         );
-
-        // Save to all bookings array
-        const allBookings =
-          JSON.parse(localStorage.getItem("allBookings")) || [];
-        allBookings.push(finalBookingConfirmation);
-        localStorage.setItem("allBookings", JSON.stringify(allBookings));
 
         // Clear temporary booking data
         localStorage.removeItem("selectedMovie");
@@ -250,6 +253,7 @@ const PaymentPage = () => {
         }, 2000);
       } catch (apiError) {
         console.error("API call failed:", apiError);
+        processingRef.current = false;
         setIsProcessing(false);
 
         // Show more specific error message
@@ -269,6 +273,7 @@ const PaymentPage = () => {
       }
     } catch (error) {
       console.error("Payment processing error:", error);
+      processingRef.current = false;
       setIsProcessing(false);
       alert(`Payment failed: ${error.message}. Please try again.`);
     }

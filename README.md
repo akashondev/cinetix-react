@@ -1,5 +1,7 @@
 # Getting Started with Create React App
 
+Seat availability is loaded from the backend for the exact movie, cinema, screen, date, and showtime. Socket.IO delivers committed updates, with authoritative refetches on initial load, reconnect, focus, and booking conflicts. Local storage is navigation context only and is never an availability source.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
