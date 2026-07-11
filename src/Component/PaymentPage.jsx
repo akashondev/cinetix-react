@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import { normalizeCalendarDate } from "../api/bookingApi";
 
 const PaymentPage = () => {
   const [cardNumberError, setCardNumberError] = useState("");
@@ -166,7 +167,7 @@ const PaymentPage = () => {
         cinema: theater.name,
         screen: theater.screen || bookingData.theaterScreen || "Screen 1",
         time: selectedTime || bookingData.showTime,
-        date: selectedDate || bookingData.dateISO,
+        date: normalizeCalendarDate(selectedDate || bookingData.dateISO),
         day: new Date(
           selectedDate || bookingData.dateISO
         ).toLocaleDateString("en-US", {

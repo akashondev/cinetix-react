@@ -4,6 +4,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Seat from "./Seat";
 import useSeatAvailability from "../hooks/useSeatAvailability";
+import { normalizeCalendarDate } from "../api/bookingApi";
 
 const ROWS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 const SEAT_NUMBERS = [1, 2, 3, 5, 6, 7, 8, 10, 11, 12];
@@ -26,7 +27,7 @@ export default function SeatSelectionPage() {
     movieId: bookingData.movieId,
     cinema: bookingData.theaterName,
     screen: bookingData.theaterScreen || "Screen 1",
-    date: bookingData.dateISO,
+    date: normalizeCalendarDate(bookingData.dateISO),
     time: bookingData.showTime,
   }), [bookingData]);
   const { availability, bookedSeats, loading, refreshing, error, refetch } = useSeatAvailability(identity);
@@ -70,7 +71,7 @@ export default function SeatSelectionPage() {
       state: {
         movie: { id: bookingData.movieId, title: bookingData.movieTitle, image: bookingData.movieImage },
         theater: { name: bookingData.theaterName, address: bookingData.theaterAddress, screen: bookingData.theaterScreen || "Screen 1" },
-        selectedDate: bookingData.dateISO,
+        selectedDate: normalizeCalendarDate(bookingData.dateISO),
         selectedTime: bookingData.showTime,
         selectedSeats,
       },

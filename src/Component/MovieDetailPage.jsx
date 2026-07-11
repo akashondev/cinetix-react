@@ -120,7 +120,7 @@ const MovieDetailPage = () => {
         day: day,
         date: dateStr,
         fullDate: date,
-        isoDate: date.toISOString(),
+        isoDate: date.toISOString().slice(0, 10),
         year: currentYear,
       });
     }

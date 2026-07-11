@@ -10,6 +10,11 @@ export class BookingApiError extends Error {
   }
 }
 
+export function normalizeCalendarDate(value) {
+  const match = String(value || "").match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : value;
+}
+
 async function request(url, options = {}) {
   const response = await fetch(url, options);
   const payload = await response.json().catch(() => ({}));
@@ -18,7 +23,7 @@ async function request(url, options = {}) {
 }
 
 export function fetchAvailability(identity, { signal } = {}) {
-  const query = new URLSearchParams(identity).toString();
+  const query = new URLSearchParams({ ...identity, date: normalizeCalendarDate(identity?.date) }).toString();
   return request(`${API_URL}/shows/availability?${query}`, { signal, cache: "no-store" });
 }
 
@@ -26,7 +31,7 @@ export function createBooking(payload, token, { signal } = {}) {
   return request(`${API_URL}/tickets`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, date: normalizeCalendarDate(payload?.date) }),
     signal,
   });
 }
