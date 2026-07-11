@@ -1,7 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { Clock3, Star } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 
-const MovieCard = ({
+export default function MovieCard({
   _id,
   title = "Interstellar",
   banner = "/api/placeholder/260/360?text=Movie",
@@ -9,94 +11,66 @@ const MovieCard = ({
   duration = "2h 49m",
   genres = ["Sci-Fi", "Adventure"],
   certificate = "PG-13",
-  category = "now-showing", // default category
-  releaseDate, // Added releaseDate prop
-}) => {
-  // Format release date to 'Month Day, Year'
+  category = "now-showing",
+  releaseDate,
+}) {
+  const reduceMotion = useReducedMotion();
   const formattedReleaseDate = releaseDate
-    ? new Date(releaseDate).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+    ? new Date(releaseDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
     : "TBD";
+  const visibleGenres = Array.isArray(genres) ? genres.slice(0, 2) : [];
+  const remainingGenres = Math.max((genres?.length || 0) - visibleGenres.length, 0);
 
   return (
-    <div className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 w-64 h-110">
-      {/* Movie Poster */}
-      <div className="relative h-80">
-        <img src={banner} alt={title} className="w-full h-full object-cover" />
-        <div className="absolute top-0 left-0 bg-black bg-opacity-50 text-white px-2 py-1 text-xs">
+    <motion.article
+      data-testid="movie-card"
+      whileHover={reduceMotion ? undefined : { y: -2 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      className="group flex h-[30rem] w-full max-w-[16.5rem] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-xl"
+    >
+      <div className="relative h-[21rem] flex-none overflow-hidden bg-gray-200">
+        <motion.img
+          src={banner}
+          alt={`${title} poster`}
+          className="h-full w-full object-cover"
+          whileHover={reduceMotion ? undefined : { scale: 1.025 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+        />
+        <span className="absolute left-3 top-3 rounded bg-black/75 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm">
           {certificate}
-        </div>
-        <div className="absolute top-0 right-0 bg-[#5c6ac4] text-white flex items-center px-2 py-1 text-xs">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 mr-1"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
+        </span>
+        <span className="absolute right-3 top-3 flex items-center gap-1 rounded bg-[#5c6ac4] px-2 py-1 text-xs font-semibold text-white shadow-sm">
+          <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
           {rating}
-        </div>
+        </span>
       </div>
 
-      {/* Movie Info */}
-      <div className="p-3 bg-white h-30">
-        {/* Title - Display full title with a maximum of 2 lines */}
-        <h3 className="font-bold text-base mb-1 line-clamp-2">{title}</h3>
-
-        <div className="flex text-gray-600 text-xs mb-1">
-          <div className="flex items-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-3 w-3 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            {duration}
-          </div>
+      <div className="flex min-h-0 flex-1 flex-col p-4">
+        <h3 className="truncate text-base font-bold text-gray-950" title={title}>{title}</h3>
+        <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-gray-500">
+          <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>{duration}</span>
         </div>
-
-        <div className="flex flex-wrap gap-1 mb-2">
-          {genres.map((genre, index) => (
-            <span
-              key={index}
-              className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs"
-            >
-              {genre}
-            </span>
+        <div className="mt-3 flex h-6 items-center gap-1.5 overflow-hidden">
+          {visibleGenres.map((genre) => (
+            <span key={genre} className="max-w-[6rem] truncate rounded bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-600" title={genre}>{genre}</span>
           ))}
+          {remainingGenres > 0 && <span className="text-[11px] font-semibold text-gray-400">+{remainingGenres}</span>}
         </div>
 
-        {/* Show release date for coming soon movies */}
-        {category === "coming-soon" && (
-          <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-            Release Date: {formattedReleaseDate}
-          </div>
-        )}
-
-        {/* Show Book Button only if category is now-showing */}
-        {category === "now-showing" && (
+        {category === "now-showing" ? (
           <Link
             to={`/movie/${_id}`}
-            className="block text-center w-full py-1 rounded-md bg-[#5c6ac4] text-white text-sm font-medium hover:bg-opacity-90 transition-all"
+            className="mt-auto flex h-9 items-center justify-center rounded-md bg-[#5c6ac4] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#4d5ab5] focus:outline-none focus:ring-2 focus:ring-[#5c6ac4] focus:ring-offset-2"
           >
             Book Tickets
           </Link>
+        ) : (
+          <div className="mt-auto border-t border-gray-100 pt-3 text-xs text-gray-500">
+            <span className="font-medium text-gray-700">Release Date:</span> {formattedReleaseDate}
+          </div>
         )}
       </div>
-    </div>
+    </motion.article>
   );
-};
-
-export default MovieCard;
+}
