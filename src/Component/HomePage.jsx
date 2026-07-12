@@ -7,6 +7,7 @@ import { ArrowRight, Clock3, CreditCard, Sparkles } from "lucide-react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import MovieCard from "./MovieCard";
+import { normalizeMovies } from "../api/movieApi";
 
 const FEATURES = [
   { icon: Clock3, title: "Hassle-free Booking", copy: "Book your tickets in seconds with our easy-to-use platform." },
@@ -94,12 +95,15 @@ export default function HomePage() {
       try {
         setLoading(true);
         const response = await axios.get(`${API_URL}/movies`);
+        const movies = normalizeMovies(response.data);
         const currentDate = new Date();
-        setNowShowingMovies(response.data.filter((movie) => new Date(movie.releaseDate) <= currentDate));
-        setComingSoonMovies(response.data.filter((movie) => new Date(movie.releaseDate) > currentDate));
+        setNowShowingMovies(movies.filter((movie) => new Date(movie.releaseDate) <= currentDate));
+        setComingSoonMovies(movies.filter((movie) => new Date(movie.releaseDate) > currentDate));
         setError(null);
       } catch (requestError) {
         console.error("Error fetching movies:", requestError);
+        setNowShowingMovies([]);
+        setComingSoonMovies([]);
         setError("Failed to load movies. Please try again later.");
       } finally {
         setLoading(false);
@@ -124,7 +128,7 @@ export default function HomePage() {
             <h1 id="home-hero-heading" className="max-w-2xl text-[2rem] font-bold leading-[1.15] sm:text-5xl md:text-6xl">Experience the Magic of Cinema</h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-gray-200 sm:text-lg">Book your tickets now for the latest blockbusters</p>
             <Link to="/movies" className="mt-8 inline-flex h-11 items-center gap-2 rounded-md bg-[#5c6ac4] px-5 text-sm font-semibold text-white shadow-lg shadow-black/20 transition-colors hover:bg-[#4d5ab5] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black">
-              Browse Movies <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              Browse Movies Please<ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </motion.div>
 

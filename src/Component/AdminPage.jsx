@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config/api";
+import { normalizeMovies } from "../api/movieApi";
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -51,9 +52,10 @@ const AdminPage = () => {
 
       if (!response.ok) throw new Error("Failed to fetch movies");
       const data = await response.json();
-      setMovies(data);
+      setMovies(normalizeMovies(data));
     } catch (err) {
       console.error(err);
+      setMovies([]);
       localStorage.removeItem("adminToken");
     }
   }, []);

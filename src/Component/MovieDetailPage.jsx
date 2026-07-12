@@ -4,6 +4,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import axios from "axios";
 import { API_URL } from "../config/api";
+import { normalizeMovie } from "../api/movieApi";
 
 const MovieDetailPage = () => {
   const { id } = useParams();
@@ -20,9 +21,10 @@ const MovieDetailPage = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${API_URL}/movies/${id}`);
+      const nextMovie = normalizeMovie(response.data);
 
-      if (response.data) {
-        setMovie(response.data);
+      if (nextMovie) {
+        setMovie(nextMovie);
 
         // Check if there's saved selection in localStorage for this movie
         const savedSelection = JSON.parse(
@@ -37,6 +39,7 @@ const MovieDetailPage = () => {
       }
     } catch (error) {
       console.error("Error fetching movie:", error);
+      setMovie(null);
       if (error.response?.status === 404) {
         navigate("/not-found");
       } else {
