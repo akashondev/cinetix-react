@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { normalizeCalendarDate } from "../api/bookingApi";
+import { API_URL } from "../config/api";
 
 const PaymentPage = () => {
   const [cardNumberError, setCardNumberError] = useState("");
@@ -12,7 +13,6 @@ const PaymentPage = () => {
   const [emailError, setEmailError] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const processingRef = useRef(false);
 
   // Get data from location state first, then fallback to localStorage
@@ -183,7 +183,7 @@ const PaymentPage = () => {
 
       // Save to backend API
       try {
-        const response = await fetch(`${backendUrl}/tickets`, {
+        const response = await fetch(`${API_URL}/tickets`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -16,7 +16,7 @@ const movie = {
 test("now showing card keeps stable geometry and route", () => {
   render(<MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}><MovieCard {...movie} category="now-showing" /></MemoryRouter>);
   const card = screen.getByTestId("movie-card");
-  expect(card).toHaveClass("h-[30rem]", "max-w-[16.5rem]");
+  expect(card).toHaveClass("h-[30rem]", "w-full", "min-w-0");
   expect(screen.getByRole("heading", { name: movie.title })).toHaveClass("truncate");
   expect(screen.getByRole("heading", { name: movie.title })).toHaveAttribute("title", movie.title);
   expect(screen.getByRole("link", { name: /book tickets/i })).toHaveAttribute("href", "/movie/movie-1");

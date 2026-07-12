@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import axios from "axios";
+import { API_URL } from "../config/api";
 
 const MovieDetailPage = () => {
   const { id } = useParams();
@@ -14,12 +15,11 @@ const MovieDetailPage = () => {
   const [selectedTime, setSelectedTime] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState("");
   const [theatersLoading, setTheatersLoading] = useState(false);
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   const fetchMovie = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/movies/${id}`);
+      const response = await axios.get(`${API_URL}/movies/${id}`);
 
       if (response.data) {
         setMovie(response.data);
@@ -45,7 +45,7 @@ const MovieDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [backendUrl, id, navigate]);
+  }, [id, navigate]);
 
   useEffect(() => {
     fetchMovie();

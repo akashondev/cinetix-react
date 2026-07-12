@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../config/api";
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -24,8 +25,6 @@ const AdminPage = () => {
     trailerUrl: "",
     category: "nowShowing",
   });
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
-
   const handleLogout = () => {
     setIsLoading(true);
 
@@ -44,7 +43,7 @@ const AdminPage = () => {
     }
 
     try {
-      const response = await fetch(`${backendUrl}/movies`, {
+      const response = await fetch(`${API_URL}/movies`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -57,7 +56,7 @@ const AdminPage = () => {
       console.error(err);
       localStorage.removeItem("adminToken");
     }
-  }, [backendUrl]);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -86,8 +85,8 @@ const AdminPage = () => {
 
     try {
       const url = editingMovie
-        ? `${backendUrl}/movies/${editingMovie._id}`
-        : `${backendUrl}/movies`;
+        ? `${API_URL}/movies/${editingMovie._id}`
+        : `${API_URL}/movies`;
       const method = editingMovie ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -149,7 +148,7 @@ const AdminPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`${backendUrl}/movies/${id}`, {
+      const response = await fetch(`${API_URL}/movies/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("adminToken")}`,

@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { fetchAvailability } from "../api/bookingApi";
-
-const SOCKET_URL = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/api\/?$/, "");
+import { SOCKET_URL } from "../config/api";
 
 export default function useSeatAvailability(identity) {
   const [availability, setAvailability] = useState(null);

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { API_URL } from "../config/api";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Clock3, CreditCard, Sparkles } from "lucide-react";
 import Navbar from "./Navbar";
@@ -86,14 +87,13 @@ export default function HomePage() {
   const [comingSoonMovies, setComingSoonMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     const fetchMovies = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${backendUrl}/movies`);
+        const response = await axios.get(`${API_URL}/movies`);
         const currentDate = new Date();
         setNowShowingMovies(response.data.filter((movie) => new Date(movie.releaseDate) <= currentDate));
         setComingSoonMovies(response.data.filter((movie) => new Date(movie.releaseDate) > currentDate));
@@ -106,7 +106,7 @@ export default function HomePage() {
       }
     };
     fetchMovies();
-  }, [backendUrl]);
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">

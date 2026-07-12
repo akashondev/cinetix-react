@@ -5,6 +5,7 @@ import Footer from "./Footer";
 import { QRCodeSVG } from "qrcode.react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { API_URL } from "../config/api";
 
 const TicketPage = () => {
   const navigate = useNavigate();
@@ -14,7 +15,6 @@ const TicketPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showQR, setShowQR] = useState({});
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   // Toggle QR code display for specific ticket
   const toggleQR = (ticketId) => {
@@ -63,7 +63,7 @@ const TicketPage = () => {
         return;
       }
 
-      const response = await fetch(`${backendUrl}/tickets`, {
+      const response = await fetch(`${API_URL}/tickets`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -92,11 +92,11 @@ const TicketPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [backendUrl, groupTickets, navigate]);
+  }, [groupTickets, navigate]);
 
   useEffect(() => {
     fetchTickets();
-  }, [backendUrl, fetchTickets]);
+  }, [fetchTickets]);
 
   // Format date for display
   const formatDate = (dateString) => {

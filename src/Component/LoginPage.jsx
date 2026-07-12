@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../config/api";
 
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,8 +14,6 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
-
   useEffect(() => {
     // Clear success message when toggling between login and signup
     setSuccess("");
@@ -51,7 +50,7 @@ const LoginPage = () => {
         }
 
         // Send login request to backend
-        const response = await fetch(`${backendUrl}/users/login`, {
+        const response = await fetch(`${API_URL}/users/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -92,7 +91,7 @@ const LoginPage = () => {
         }
 
         // Send signup request to backend
-        const response = await fetch(`${backendUrl}/users/register`, {
+        const response = await fetch(`${API_URL}/users/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
