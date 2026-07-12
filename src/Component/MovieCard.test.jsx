@@ -27,3 +27,29 @@ test("coming soon card keeps release information without booking action", () => 
   expect(screen.getByText(/release date:/i)).toBeInTheDocument();
   expect(screen.queryByRole("link", { name: /book tickets/i })).not.toBeInTheDocument();
 });
+
+test("prefers the movie image over its banner", () => {
+  render(
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MovieCard {...movie} image="/image.jpg" banner="/banner.jpg" />
+    </MemoryRouter>
+  );
+
+  expect(screen.getByRole("img", { name: `${movie.title} poster` })).toHaveAttribute(
+    "src",
+    "/image.jpg"
+  );
+});
+
+test("falls back to the movie banner when image is empty", () => {
+  render(
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MovieCard {...movie} image="" banner="/banner.jpg" />
+    </MemoryRouter>
+  );
+
+  expect(screen.getByRole("img", { name: `${movie.title} poster` })).toHaveAttribute(
+    "src",
+    "/banner.jpg"
+  );
+});

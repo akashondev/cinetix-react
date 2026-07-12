@@ -6,7 +6,8 @@ import { motion, useReducedMotion } from "framer-motion";
 export default function MovieCard({
   _id,
   title = "Interstellar",
-  banner = "/api/placeholder/260/360?text=Movie",
+  image,
+  banner,
   rating = 4.5,
   duration = "2h 49m",
   genres = ["Sci-Fi", "Adventure"],
@@ -15,6 +16,7 @@ export default function MovieCard({
   releaseDate,
 }) {
   const reduceMotion = useReducedMotion();
+  const poster = image || banner || "/api/placeholder/260/360?text=Movie";
   const formattedReleaseDate = releaseDate
     ? new Date(releaseDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
     : "TBD";
@@ -30,7 +32,7 @@ export default function MovieCard({
     >
       <div className="relative h-[21rem] flex-none overflow-hidden bg-gray-200">
         <motion.img
-          src={banner}
+          src={poster}
           alt={`${title} poster`}
           className="h-full w-full object-cover"
           whileHover={reduceMotion ? undefined : { scale: 1.025 }}
