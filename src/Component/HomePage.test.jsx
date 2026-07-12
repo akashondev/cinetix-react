@@ -16,11 +16,11 @@ jest.mock("./Navbar", () => () => <nav>Navigation</nav>);
 jest.mock("./Footer", () => () => <footer>Footer</footer>);
 jest.mock("./MovieCard", () => ({ title, category }) => <div>{category}:{title}</div>);
 
-test("fetches the production movies URL and groups exact movie categories", async () => {
+test("fetches the production movies URL and groups movies by release date", async () => {
   axios.get.mockResolvedValue({ data: [
-    { _id: "showing", title: "Showing", category: "nowShowing", banner: "/showing.jpg" },
-    { _id: "soon", title: "Soon", category: "comingSoon", banner: "/soon.jpg" },
-    { _id: "hidden", title: "Hidden", category: "other", banner: "/hidden.jpg" },
+    { _id: "showing", title: "Showing", category: "comingSoon", releaseDate: "2020-01-01", banner: "/showing.jpg" },
+    { _id: "soon", title: "Soon", category: "nowShowing", releaseDate: "2035-01-01", banner: "/soon.jpg" },
+    { _id: "hidden", title: "Hidden", category: "nowShowing", releaseDate: "invalid", banner: "/hidden.jpg" },
   ] });
   render(<MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}><HomePage /></MemoryRouter>);
   await waitFor(() => expect(axios.get).toHaveBeenCalledWith("https://cinetix-api-rcv5.onrender.com/api/movies"));

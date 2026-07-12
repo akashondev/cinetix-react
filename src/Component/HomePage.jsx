@@ -7,7 +7,7 @@ import { ArrowRight, Clock3, CreditCard, Sparkles } from "lucide-react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import MovieCard from "./MovieCard";
-import { normalizeMovies } from "../api/movieApi";
+import { classifyMoviesByReleaseDate, normalizeMovies } from "../api/movieApi";
 
 const FEATURES = [
   { icon: Clock3, title: "Hassle-free Booking", copy: "Book your tickets in seconds with our easy-to-use platform." },
@@ -96,8 +96,9 @@ export default function HomePage() {
         setLoading(true);
         const response = await axios.get(`${API_URL}/movies`);
         const movieData = normalizeMovies(response.data);
-        setNowShowingMovies(movieData.filter((movie) => movie.category === "nowShowing"));
-        setComingSoonMovies(movieData.filter((movie) => movie.category === "comingSoon"));
+        const classifiedMovies = classifyMoviesByReleaseDate(movieData);
+        setNowShowingMovies(classifiedMovies.nowShowing);
+        setComingSoonMovies(classifiedMovies.comingSoon);
         setError(null);
       } catch (requestError) {
         console.error("Error fetching movies:", requestError);
