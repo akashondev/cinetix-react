@@ -4,8 +4,8 @@ import { Mail, Phone, Instagram, Twitter, Facebook } from "lucide-react";
 const Footer = () => {
   return (
     <footer className="bg-black text-white py-8">
-      <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Company Info */}
           <div>
             <h3 className="text-xl font-bold mb-4">CineTix</h3>
@@ -92,15 +92,27 @@ const Footer = () => {
                 support@cinetix.com
               </p>
               <div className="flex space-x-4 mt-4">
-                <a href="#" className="hover:text-[#5c6ac4]">
+                <button
+                  type="button"
+                  aria-label="Facebook"
+                  className="hover:text-[#5c6ac4]"
+                >
                   <Facebook size={20} />
-                </a>
-                <a href="#" className="hover:text-[#5c6ac4]">
+                </button>
+                <button
+                  type="button"
+                  aria-label="Twitter"
+                  className="hover:text-[#5c6ac4]"
+                >
                   <Twitter size={20} />
-                </a>
-                <a href="#" className="hover:text-[#5c6ac4]">
+                </button>
+                <button
+                  type="button"
+                  aria-label="Instagram"
+                  className="hover:text-[#5c6ac4]"
+                >
                   <Instagram size={20} />
-                </a>
+                </button>
               </div>
             </div>
           </div>

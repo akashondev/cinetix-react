@@ -13,6 +13,17 @@ const FEATURES = [
   { icon: Sparkles, title: "Exclusive Offers", copy: "Regular discounts and special promotions for our loyal customers." },
 ];
 
+const HERO_IMAGES = [
+  {
+    src: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=80",
+    alt: "Cinema audience watching a movie on the big screen",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1200&q=80",
+    alt: "Premium movie theater seats and screen lighting",
+  },
+];
+
 function Reveal({ children, className = "", reduceMotion }) {
   return (
     <motion.div
@@ -49,7 +60,7 @@ function MovieSection({ title, viewAllTo, movies, category, loading, error, empt
       ) : error ? (
         <div className="border border-red-200 bg-red-50 px-4 py-8 text-center text-red-700">{error}</div>
       ) : movies.length > 0 ? (
-        <div className="grid grid-cols-1 justify-items-center gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-3 xl:grid-cols-4">
           {movies.map((movie, index) => (
             <motion.div
               key={movie._id}
@@ -57,7 +68,7 @@ function MovieSection({ title, viewAllTo, movies, category, loading, error, empt
               whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.15 }}
               transition={{ duration: 0.35, delay: reduceMotion ? 0 : Math.min(index * 0.04, 0.16) }}
-              className="w-full max-w-[16.5rem]"
+              className="w-full"
             >
               <MovieCard {...movie} category={category} />
             </motion.div>
@@ -97,25 +108,12 @@ export default function HomePage() {
     fetchMovies();
   }, [backendUrl]);
 
-  const featuredMovie = nowShowingMovies[0];
-
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <Navbar />
 
-      <section className="relative h-[420px] overflow-hidden bg-black text-white md:h-[520px]" aria-labelledby="home-hero-heading">
-        {featuredMovie?.banner && (
-          <motion.img
-            src={featuredMovie.banner}
-            alt={`Featured now showing: ${featuredMovie.title}`}
-            className="absolute inset-0 h-full w-full object-cover object-[65%_center] sm:object-center"
-            initial={reduceMotion ? false : { opacity: 0, scale: 1.015 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
-        )}
-        <div className="absolute inset-0 bg-black/65" aria-hidden="true" />
-        <div className="relative mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+      <section className="overflow-hidden bg-black text-white" aria-labelledby="home-hero-heading">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-[1.1fr_0.9fr] md:items-center lg:px-8 lg:py-16">
           <motion.div
             className="max-w-3xl"
             initial={reduceMotion ? false : { opacity: 0, y: 20 }}
@@ -128,6 +126,29 @@ export default function HomePage() {
             <Link to="/movies" className="mt-8 inline-flex h-11 items-center gap-2 rounded-md bg-[#5c6ac4] px-5 text-sm font-semibold text-white shadow-lg shadow-black/20 transition-colors hover:bg-[#4d5ab5] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black">
               Browse Movies <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
+          </motion.div>
+
+          <motion.div
+            className="grid gap-3 sm:grid-cols-2"
+            initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, ease: "easeOut", delay: 0.1 }}
+          >
+            {HERO_IMAGES.map((image, index) => (
+              <div
+                key={image.src}
+                className={`overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-2xl shadow-black/30 ${
+                  index === 0 ? "sm:aspect-[4/5]" : "sm:aspect-[4/5] md:translate-y-6"
+                }`}
+              >
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  className="h-full w-full object-contain p-2"
+                  loading={index === 0 ? "eager" : "lazy"}
+                />
+              </div>
+            ))}
           </motion.div>
         </div>
       </section>

@@ -1,23 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, User, X, Menu } from "lucide-react";
+import { Menu, Search, Ticket, User, X } from "lucide-react";
 import LogoutButton from "./LogoutButton";
-import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const navigate = useNavigate();
-  const ticket = () => {
-    navigate("/ticket");
-  };
+  const accountMenuRef = useRef(null);
 
   useEffect(() => {
-    // Check login status whenever component mounts or localStorage changes
     const checkLoginStatus = () => {
       const loggedIn = localStorage.getItem("isLoggedIn") === "true";
       const name = localStorage.getItem("userName") || "";
@@ -26,15 +22,15 @@ const Navbar = () => {
       setIsLoggedIn(loggedIn);
       setUserName(name);
       setUserEmail(email);
+
+      if (!loggedIn) {
+        setIsAccountOpen(false);
+      }
     };
 
-    // Initial check
     checkLoginStatus();
 
-    // Setup event listener for storage changes (for multi-tab support)
     window.addEventListener("storage", checkLoginStatus);
-
-    // Custom event for logout from other components
     window.addEventListener("user-logout", checkLoginStatus);
 
     return () => {
@@ -43,8 +39,38 @@ const Navbar = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const handlePointerDown = (event) => {
+      if (
+        accountMenuRef.current &&
+        !accountMenuRef.current.contains(event.target)
+      ) {
+        setIsAccountOpen(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setIsAccountOpen(false);
+        setIsMenuOpen(false);
+        setIsSearchOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
   const toggleSearch = () => {
-    setIsSearchOpen(!isSearchOpen);
+    setIsAccountOpen(false);
+    setIsSearchOpen((current) => !current);
     if (isSearchOpen) {
       setSearchQuery("");
     }
@@ -52,40 +78,59 @@ const Navbar = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    // Handle search submission
     console.log("Searching for:", searchQuery);
-    // Add your search logic here
+  };
+
+  const closeMenus = () => {
+    setIsMenuOpen(false);
+    setIsAccountOpen(false);
+  };
+
+  const toggleAccountMenu = () => {
+    if (!isLoggedIn) {
+      return;
+    }
+
+    setIsMenuOpen(false);
+    setIsAccountOpen((current) => !current);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsAccountOpen(false);
+    setIsMenuOpen((current) => !current);
   };
 
   return (
-    <nav className="bg-black text-white py-4 px-6 sticky top-0 z-50">
-      <div className="container mx-auto flex justify-between items-center">
-        {/* Logo */}
-        <div className="text-xl font-bold">
-          <Link to="/" className="flex items-center">
-            <span>CineTix</span>
-          </Link>
-        </div>
+    <nav className="sticky top-0 z-50 border-b border-white/5 bg-black/95 text-white backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link to="/" className="text-lg font-bold tracking-tight sm:text-xl">
+          CineTix
+        </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-6">
+        <div className="hidden items-center gap-5 md:flex">
           <Link
             to="/"
-            className="text-[18px] hover:text-gray-200 transition-colors"
+            className="text-sm font-medium text-white/85 transition-colors hover:text-white"
           >
             Home
           </Link>
           <Link
             to="/movies"
-            className="text-[18px] hover:text-gray-200 transition-colors"
+            className="text-sm font-medium text-white/85 transition-colors hover:text-white"
           >
             Movies
           </Link>
           <Link
             to="/theaters"
-            className="text-[18px]  hover:text-gray-200 transition-colors"
+            className="text-sm font-medium text-white/85 transition-colors hover:text-white"
           >
             Theaters
+          </Link>
+          <Link
+            to="/offers"
+            className="text-sm font-medium text-white/85 transition-colors hover:text-white"
+          >
+            Offers
           </Link>
           <div className="relative">
             <form onSubmit={handleSearchSubmit}>
@@ -93,15 +138,18 @@ const Navbar = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`h-12 bg-black text-white placeholder-gray-300 rounded-full pl-5 pr-12 outline-none transition-all duration-500 ease-in-out ${
-                  isSearchOpen ? "w-72" : "w-12"
+                className={`h-10 rounded-full border border-white/10 bg-white/5 pl-4 pr-10 text-sm text-white placeholder:text-white/45 outline-none transition-all duration-300 ease-in-out focus:border-white/25 focus:bg-white/10 ${
+                  isSearchOpen ? "w-60 lg:w-72" : "w-10 cursor-pointer"
                 }`}
                 placeholder={isSearchOpen ? "Search movies..." : ""}
+                aria-label="Search movies"
+                readOnly={!isSearchOpen}
               />
               <button
                 type="button"
                 onClick={toggleSearch}
-                className="absolute right-0 top-0 w-12 h-12 rounded-full bg-black text-white flex items-center justify-center"
+                className="absolute right-0 top-0 flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
+                aria-label={isSearchOpen ? "Close search" : "Open search"}
               >
                 <Search className="h-5 w-5" />
               </button>
@@ -109,136 +157,136 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Auth Buttons */}
-        <div className="hidden md:flex items-center space-x-4">
-          {isLoggedIn ? (
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center">
-                <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white mr-2">
-                  {userName.charAt(0).toUpperCase()}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div ref={accountMenuRef} className="relative">
+            <button
+              type="button"
+              disabled={!isLoggedIn}
+              onClick={toggleAccountMenu}
+              className={`flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors ${
+                isLoggedIn
+                  ? "hover:bg-white/10"
+                  : "cursor-not-allowed text-white/40"
+              }`}
+              aria-haspopup="menu"
+              aria-expanded={isAccountOpen}
+              aria-disabled={!isLoggedIn}
+              aria-label={isLoggedIn ? "Open account menu" : "Account menu unavailable until sign in"}
+            >
+              <User className="h-5 w-5" />
+            </button>
+
+            {isLoggedIn && isAccountOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-[#111] p-2 shadow-2xl shadow-black/40"
+              >
+                <div className="border-b border-white/10 px-3 py-2">
+                  <p className="truncate text-sm font-semibold text-white">{userName}</p>
+                  <p className="truncate text-xs text-white/55">{userEmail}</p>
+                </div>
+                <Link
+                  to="/ticket"
+                  role="menuitem"
+                  className="mt-2 flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+                  onClick={closeMenus}
+                >
+                  <Ticket className="h-4 w-4" />
+                  Tickets
+                </Link>
+                <div className="mt-1">
+                  <LogoutButton className="w-full justify-start border-transparent bg-transparent px-3 py-2 text-white/85 hover:bg-white/10 hover:text-white" />
                 </div>
               </div>
-              <LogoutButton />
+            )}
+          </div>
 
-              <button
-                onClick={ticket}
-                className="px-4 py-1 rounded-[10px] border-2 border-white text-white hover:bg-white hover:text-black transition-colors duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-              >
-                tickets
-              </button>
-            </div>
-          ) : (
-            <div className="flex space-x-2">
-              <Link
-                to="/login"
-                className="px-4 py-2 border-2 rounded-lg bg-transparent border-white hover:bg-gray-800 transition-colors"
-              >
-                Sign in
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="flex md:hidden items-center space-x-4">
-          {/* Mobile Search Button */}
-          <button onClick={toggleSearch} className="text-white">
+          <button
+            onClick={toggleSearch}
+            className="text-white md:hidden"
+            aria-label={isSearchOpen ? "Close search" : "Open search"}
+          >
             <Search className="h-5 w-5" />
           </button>
 
-          {/* Mobile Profile Button */}
-          <Link to={isLoggedIn ? "/profile" : "/login"} className="text-white">
-            <User className="h-5 w-5" />
-          </Link>
-
-          {/* Mobile Menu Toggle */}
           <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-white"
+            onClick={toggleMobileMenu}
+            className="text-white md:hidden"
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           >
-            {isMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
+            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Search Bar */}
       {isSearchOpen && (
-        <div className="md:hidden bg-black py-3 px-6">
-          <form onSubmit={handleSearchSubmit} className="relative w-full">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-12 w-full bg-gray-800 text-white placeholder-gray-300 rounded-full pl-5 pr-12 outline-none"
-              placeholder="Search movies..."
-            />
-            <button
-              type="submit"
-              className="absolute right-0 top-0 w-12 h-12 rounded-full bg-black text-white flex items-center justify-center"
-            >
-              <Search className="h-5 w-5" />
-            </button>
-          </form>
+        <div className="border-t border-white/5 bg-black md:hidden">
+          <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+            <form onSubmit={handleSearchSubmit} className="relative w-full">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-11 w-full rounded-full border border-white/10 bg-white/5 pl-4 pr-11 text-sm text-white placeholder:text-white/45 outline-none focus:border-white/25"
+                placeholder="Search movies..."
+                aria-label="Search movies"
+              />
+              <button
+                type="submit"
+                className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
+                aria-label="Submit search"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-black py-2 px-6">
-          <div className="flex flex-col space-y-4 pt-2 pb-4">
-            <Link
-              to="/"
-              className="block hover:text-gray-300 transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Home
-            </Link>
-            <Link
-              to="/movies"
-              className="block hover:text-gray-300 transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Movies
-            </Link>
-            <Link
-              to="/theaters"
-              className="block hover:text-gray-300 transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Theaters
-            </Link>
-            <Link
-              to="/offers"
-              className="block hover:text-gray-300 transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Offers
-            </Link>
-            {isLoggedIn ? (
-              <div className="flex flex-col space-y-2 mt-2">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white mr-2">
-                    {userName.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-sm font-medium">{userName}</span>
+        <div className="border-t border-white/5 bg-black md:hidden">
+          <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+            <div className="flex flex-col space-y-4 pt-2 pb-4">
+              <Link
+                to="/"
+                className="block transition-colors hover:text-gray-300"
+                onClick={closeMenus}
+              >
+                Home
+              </Link>
+              <Link
+                to="/movies"
+                className="block transition-colors hover:text-gray-300"
+                onClick={closeMenus}
+              >
+                Movies
+              </Link>
+              <Link
+                to="/theaters"
+                className="block transition-colors hover:text-gray-300"
+                onClick={closeMenus}
+              >
+                Theaters
+              </Link>
+              <Link
+                to="/offers"
+                className="block transition-colors hover:text-gray-300"
+                onClick={closeMenus}
+              >
+                Offers
+              </Link>
+              {!isLoggedIn && (
+                <div className="mt-2 flex space-x-2">
+                  <Link
+                    to="/login"
+                    className="flex-1 rounded-full border border-white px-4 py-2 text-center transition-colors hover:bg-gray-800"
+                    onClick={closeMenus}
+                  >
+                    Sign in
+                  </Link>
                 </div>
-                <LogoutButton />
-              </div>
-            ) : (
-              <div className="flex space-x-2 mt-4">
-                <Link
-                  to="/signup"
-                  className="flex-1 px-4 py-2 rounded-full bg-transparent border border-white hover:bg-gray-800 text-center transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Sign in
-                </Link>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}

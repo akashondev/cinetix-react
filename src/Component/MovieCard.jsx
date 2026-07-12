@@ -26,7 +26,7 @@ export default function MovieCard({
       data-testid="movie-card"
       whileHover={reduceMotion ? undefined : { y: -2 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
-      className="group flex h-[30rem] w-full max-w-[16.5rem] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-xl"
+      className="group flex h-[30rem] w-full min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-xl"
     >
       <div className="relative h-[21rem] flex-none overflow-hidden bg-gray-200">
         <motion.img
@@ -46,7 +46,7 @@ export default function MovieCard({
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col p-4">
-        <h3 className="truncate text-base font-bold text-gray-950" title={title}>{title}</h3>
+        <h3 className="min-w-0 truncate text-base font-bold text-gray-950" title={title}>{title}</h3>
         <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-gray-500">
           <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
           <span>{duration}</span>
