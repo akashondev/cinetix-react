@@ -96,7 +96,7 @@ const TicketPage = () => {
 
   useEffect(() => {
     fetchTickets();
-  }, [fetchTickets]);
+  }, [backendUrl, fetchTickets]);
 
   // Format date for display
   const formatDate = (dateString) => {

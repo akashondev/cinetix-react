@@ -35,29 +35,6 @@ const MovieDetailPage = () => {
       } else {
         navigate("/not-found");
       }
-
-      // Set current date and time in IST
-      const updateCurrentDateTime = () => {
-        const options = {
-          timeZone: "Asia/Kolkata",
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: true,
-        };
-
-        const dateTimeIST = new Date().toLocaleString("en-IN", options);
-        setCurrentDateTime(dateTimeIST);
-      };
-
-      updateCurrentDateTime();
-      const timer = setInterval(updateCurrentDateTime, 60000);
-
-      return () => clearInterval(timer);
     } catch (error) {
       console.error("Error fetching movie:", error);
       if (error.response?.status === 404) {
@@ -73,6 +50,30 @@ const MovieDetailPage = () => {
   useEffect(() => {
     fetchMovie();
   }, [fetchMovie]);
+
+  useEffect(() => {
+    const updateCurrentDateTime = () => {
+      const options = {
+        timeZone: "Asia/Kolkata",
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      };
+
+      const dateTimeIST = new Date().toLocaleString("en-IN", options);
+      setCurrentDateTime(dateTimeIST);
+    };
+
+    updateCurrentDateTime();
+    const timer = setInterval(updateCurrentDateTime, 60000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   // Handle date selection with loading animation
   const handleDateSelection = (dateId) => {

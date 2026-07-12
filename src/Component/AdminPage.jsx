@@ -37,10 +37,16 @@ const AdminPage = () => {
   };
 
   const fetchMovies = useCallback(async () => {
+    const token = localStorage.getItem("adminToken");
+
+    if (!token) {
+      return;
+    }
+
     try {
       const response = await fetch(`${backendUrl}/movies`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
