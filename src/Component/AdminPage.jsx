@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AdminPage = () => {
@@ -36,17 +36,7 @@ const AdminPage = () => {
     }, 1000);
   };
 
-  useEffect(() => {
-    const token = localStorage.getItem("adminToken");
-    if (!token) {
-      console.log("No token found, would redirect to login");
-      return;
-    }
-
-    fetchMovies();
-  }, []);
-
-  const fetchMovies = async () => {
+  const fetchMovies = useCallback(async () => {
     try {
       const response = await fetch(`${backendUrl}/movies`, {
         headers: {
@@ -61,7 +51,17 @@ const AdminPage = () => {
       console.error(err);
       localStorage.removeItem("adminToken");
     }
-  };
+  }, [backendUrl]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+      console.log("No token found, would redirect to login");
+      return;
+    }
+
+    fetchMovies();
+  }, [fetchMovies]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

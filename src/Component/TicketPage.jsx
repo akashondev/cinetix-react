@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { QRCodeSVG } from "qrcode.react";
@@ -7,15 +7,12 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 const TicketPage = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const ticketRefs = useRef({});
 
-  const [tickets, setTickets] = useState([]);
   const [groupedTickets, setGroupedTickets] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showQR, setShowQR] = useState({});
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -27,55 +24,8 @@ const TicketPage = () => {
     }));
   };
 
-  // Fetch user tickets from API
-  useEffect(() => {
-    const fetchTickets = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("token");
-        if (!token) {
-          setError("Please login to view your tickets");
-          navigate("/login");
-          return;
-        }
-
-        const response = await fetch(`${backendUrl}/tickets`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            localStorage.removeItem("token");
-            localStorage.removeItem("currentUser");
-            navigate("/login");
-            return;
-          }
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.success) {
-          setTickets(data.data);
-          groupTickets(data.data);
-        } else {
-          setError(data.message);
-        }
-      } catch (err) {
-        console.error("Error fetching tickets:", err);
-        setError(err.message || "Failed to load tickets");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTickets();
-  }, [navigate]);
-
   // Group tickets by movie and showtime
-  const groupTickets = (tickets) => {
+  const groupTickets = useCallback((tickets) => {
     const grouped = {};
 
     tickets.forEach((ticket) => {
@@ -100,7 +50,53 @@ const TicketPage = () => {
     });
 
     setGroupedTickets(grouped);
-  };
+  }, []);
+
+  // Fetch user tickets from API
+  const fetchTickets = useCallback(async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Please login to view your tickets");
+        navigate("/login");
+        return;
+      }
+
+      const response = await fetch(`${backendUrl}/tickets`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("currentUser");
+          navigate("/login");
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        groupTickets(data.data);
+      } else {
+        setError(data.message);
+      }
+    } catch (err) {
+      console.error("Error fetching tickets:", err);
+      setError(err.message || "Failed to load tickets");
+    } finally {
+      setLoading(false);
+    }
+  }, [backendUrl, groupTickets, navigate]);
+
+  useEffect(() => {
+    fetchTickets();
+  }, [fetchTickets]);
 
   // Format date for display
   const formatDate = (dateString) => {

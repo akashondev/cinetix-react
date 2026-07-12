@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import axios from "axios";
@@ -12,12 +12,11 @@ const MovieDetailPage = () => {
   const [selectedDate, setSelectedDate] = useState(0);
   const [selectedTheater, setSelectedTheater] = useState(0);
   const [selectedTime, setSelectedTime] = useState(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState("");
   const [theatersLoading, setTheatersLoading] = useState(false);
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
-  const fetchMovie = async () => {
+  const fetchMovie = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get(`${backendUrl}/movies/${id}`);
@@ -69,11 +68,11 @@ const MovieDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [backendUrl, id, navigate]);
 
   useEffect(() => {
     fetchMovie();
-  }, [id]);
+  }, [fetchMovie]);
 
   // Handle date selection with loading animation
   const handleDateSelection = (dateId) => {
