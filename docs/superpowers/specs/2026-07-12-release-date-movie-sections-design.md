@@ -6,7 +6,9 @@ Keep HomePage movie sections accurate automatically as release dates pass.
 
 ## Classification
 
-Classify normalized movies exclusively by the calendar portion of `releaseDate`, not by the persisted `category` field. Compare canonical `YYYY-MM-DD` values so browser timezone conversion cannot move a movie across the date boundary.
+Classify normalized movies exclusively by `releaseDate`, not by the persisted `category` field. Normalize supported API values into canonical `YYYY-MM-DD` keys before comparing them so browser timezone conversion cannot move a movie across the date boundary.
+
+Supported inputs are ISO-style values beginning with `YYYY-MM-DD` and the existing API's human-readable `D Month YYYY`, `D Mon, YYYY`, and `D Mon, YY` values, with surrounding whitespace ignored. English month names and abbreviations are case-insensitive. Two-digit years map from `00` through `69` to 2000 through 2069 and from `70` through `99` to 1970 through 1999. Impossible calendar dates remain invalid.
 
 - A valid release date later than today appears in Coming Soon.
 - A valid release date equal to or earlier than today appears in Now Showing.
