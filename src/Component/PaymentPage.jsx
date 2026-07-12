@@ -4,6 +4,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { normalizeCalendarDate } from "../api/bookingApi";
 import { API_URL } from "../config/api";
+import { clearUserSession, isInvalidSessionStatus } from "../api/authSession";
 
 const PaymentPage = () => {
   const [cardNumberError, setCardNumberError] = useState("");
@@ -206,9 +207,8 @@ const PaymentPage = () => {
         if (!response.ok) {
           console.error("API Error response:", responseData);
 
-          if (response.status === 401) {
-            localStorage.removeItem("token");
-            localStorage.removeItem("currentUser");
+          if (isInvalidSessionStatus(response.status)) {
+            clearUserSession();
             alert("Your session has expired. Please login again.");
             navigate("/login", { state: { from: location.pathname } });
             return;

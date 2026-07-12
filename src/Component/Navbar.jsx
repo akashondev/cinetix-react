@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Menu, Search, Ticket, User, X } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -88,6 +89,7 @@ const Navbar = () => {
 
   const toggleAccountMenu = () => {
     if (!isLoggedIn) {
+      navigate("/login");
       return;
     }
 
@@ -132,7 +134,7 @@ const Navbar = () => {
           >
             Offers
           </Link>
-          <div className="relative">
+          {/* <div className="relative">
             <form onSubmit={handleSearchSubmit}>
               <input
                 type="text"
@@ -154,24 +156,18 @@ const Navbar = () => {
                 <Search className="h-5 w-5" />
               </button>
             </form>
-          </div>
+          </div> */}
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
           <div ref={accountMenuRef} className="relative">
             <button
               type="button"
-              disabled={!isLoggedIn}
               onClick={toggleAccountMenu}
-              className={`flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors ${
-                isLoggedIn
-                  ? "hover:bg-white/10"
-                  : "cursor-not-allowed text-white/40"
-              }`}
+              className="flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
               aria-haspopup="menu"
               aria-expanded={isAccountOpen}
-              aria-disabled={!isLoggedIn}
-              aria-label={isLoggedIn ? "Open account menu" : "Account menu unavailable until sign in"}
+              aria-label={isLoggedIn ? "Open account menu" : "Sign in"}
             >
               <User className="h-5 w-5" />
             </button>

@@ -20,7 +20,7 @@ describe("Navbar account menu", () => {
     mockNavigate.mockClear();
   });
 
-  test("keeps the account control disabled when the user is logged out", () => {
+  test("routes logged-out users to sign in from the account control", () => {
     render(
       <MemoryRouter>
         <Navbar />
@@ -28,13 +28,14 @@ describe("Navbar account menu", () => {
     );
 
     const accountButton = screen.getByRole("button", {
-      name: /account menu unavailable until sign in/i,
+      name: /sign in/i,
     });
 
-    expect(accountButton).toBeDisabled();
+    expect(accountButton).toBeEnabled();
 
     fireEvent.click(accountButton);
 
+    expect(mockNavigate).toHaveBeenCalledWith("/login");
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /tickets/i })).not.toBeInTheDocument();
   });
