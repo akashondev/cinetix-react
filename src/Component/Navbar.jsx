@@ -197,13 +197,13 @@ const Navbar = () => {
             )}
           </div>
 
-          <button
+          {/* <button
             onClick={toggleSearch}
             className="text-white md:hidden"
             aria-label={isSearchOpen ? "Close search" : "Open search"}
           >
             <Search className="h-5 w-5" />
-          </button>
+          </button> */}
 
           <button
             onClick={toggleMobileMenu}
