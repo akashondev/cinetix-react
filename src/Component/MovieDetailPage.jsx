@@ -3,8 +3,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import axios from "axios";
+import {
+  CalendarDays,
+  MapPin,
+  Play,
+  Ticket,
+} from "lucide-react";
 import { API_URL } from "../config/api";
 import { normalizeMovie } from "../api/movieApi";
+import TrailerModal from "./TrailerModal";
+import { getYouTubeEmbedUrl } from "./trailerUrl";
 
 const MovieDetailPage = () => {
   const { id } = useParams();
@@ -16,6 +24,7 @@ const MovieDetailPage = () => {
   const [selectedTime, setSelectedTime] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState("");
   const [theatersLoading, setTheatersLoading] = useState(false);
+  const [isTrailerOpen, setIsTrailerOpen] = useState(false);
 
   const fetchMovie = useCallback(async () => {
     try {
@@ -262,86 +271,97 @@ const MovieDetailPage = () => {
     return showTimes.filter((time) => !isShowtimePassed(time));
   };
 
+  const closeTrailer = useCallback(() => {
+    setIsTrailerOpen(false);
+  }, []);
+
+  const trailerEmbedUrl = getYouTubeEmbedUrl(movie?.trailerUrl);
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#5c6ac4]"></div>
+      <div className="flex h-screen items-center justify-center bg-[#080808]">
+        <div
+          className="h-14 w-14 animate-spin rounded-full border-2 border-white/15 border-t-[#8f9af0]"
+          aria-label="Loading movie"
+        />
       </div>
     );
   }
 
   if (!movie) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex h-screen items-center justify-center bg-[#080808] text-white">
         <div className="text-xl">Movie not found</div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col bg-[#080808] text-white">
       <Navbar />
 
-      {/* Movie Banner */}
-      <div className="relative h-80 bg-black">
-        <img
-          src={movie.image}
-          alt={`${movie.title} banner`}
-          className="w-full h-full object-cover opacity-50"
-        />
-      </div>
+      <header className="relative bg-black">
+        <div className="relative h-[25rem] overflow-hidden bg-black sm:h-[31rem] lg:h-[38rem]">
+          <img
+            src={movie.image || movie.banner}
+            alt={`${movie.title} backdrop`}
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/50" aria-hidden="true" />
+          <div
+            className="absolute inset-x-0 bottom-0 h-44 bg-black/55"
+            aria-hidden="true"
+          />
+          <button
+            type="button"
+            onClick={() => setIsTrailerOpen(true)}
+            disabled={!trailerEmbedUrl}
+            aria-label={
+              trailerEmbedUrl
+                ? `Play ${movie.title} trailer`
+                : "Trailer unavailable"
+            }
+            className="absolute left-1/2 top-[42%] flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/35 bg-black/60 text-white shadow-2xl backdrop-blur-sm transition duration-200 hover:scale-105 hover:bg-[#5c6ac4] focus:outline-none focus:ring-2 focus:ring-[#8f9af0] focus:ring-offset-4 focus:ring-offset-black disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100 disabled:hover:bg-black/60 sm:h-20 sm:w-20"
+          >
+            <Play
+              className="ml-1 h-7 w-7 fill-current sm:h-9 sm:w-9"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+      </header>
 
-      {/* Main Content */}
-      <main className="flex-grow bg-gray-50 py-8">
-        <div className="container mx-auto px-6">
-          {/* Current IST Time Display */}
-          <div className="mb-6 text-right text-sm text-gray-500">
-            Current IST Time: {currentDateTime}
+      <main className="flex-grow">
+        <div className="relative z-10 mx-auto -mt-24 max-w-7xl px-4 pb-12 sm:px-6 lg:-mt-32 lg:px-8">
+          <div className="mb-5 text-right text-xs text-white/45">
+            All showtimes in IST · {currentDateTime}
           </div>
 
-          {/* Movie Info Section */}
-          <section className="mb-12">
-            <div className="flex flex-col md:flex-row gap-8">
-              {/* Movie Poster */}
-              <div className="md:w-1/3 lg:w-1/4">
-                <div className="rounded-lg overflow-hidden shadow-lg w-80">
+          <section className="mb-14" aria-labelledby="movie-title">
+            <div className="grid gap-7 md:grid-cols-[13rem_1fr] md:items-end lg:grid-cols-[15rem_1fr] lg:gap-10">
+              <div className="mx-auto w-44 sm:w-52 md:mx-0 md:w-full">
+                <div className="aspect-[2/3] overflow-hidden rounded-xl border border-white/15 bg-[#151515] shadow-2xl shadow-black/70">
                   <img
-                    src={movie.banner}
-                    alt={`${movie.title}`}
-                    className="w-full"
+                    src={movie.banner || movie.image}
+                    alt={`${movie.title} poster`}
+                    className="h-full w-full object-cover"
                   />
-                </div>
-
-                <div className="mt-6">
-                  <a
-                    href={movie.trailerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-80 py-3 bg-black text-white rounded-md hover:bg-gray-800 transition-colors"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 mr-2"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Watch Trailer
-                  </a>
                 </div>
               </div>
 
-              {/* Movie Details */}
-              <div className="md:w-2/3 lg:w-3/4">
-                <h1 className="text-3xl font-bold mb-2">{movie.title}</h1>
+              <div className="min-w-0 pb-1 text-center md:text-left">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#aeb5ff]">
+                  Now showing at CineTix
+                </p>
+                <h1
+                  id="movie-title"
+                  className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl"
+                >
+                  {movie.title}
+                </h1>
 
-                <div className="flex flex-wrap items-center gap-4 mb-4">
-                  <div className="flex items-center bg-[#5c6ac4] text-white px-2 py-1 rounded">
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5 text-sm md:justify-start">
+                  <div className="flex items-center rounded-md bg-[#5c6ac4] px-3 py-1.5 font-semibold text-white">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4 mr-1"
@@ -353,7 +373,7 @@ const MovieDetailPage = () => {
                     <span>{movie.rating}/5</span>
                   </div>
 
-                  <div className="flex items-center text-gray-600">
+                  <div className="flex items-center rounded-md border border-white/15 bg-black/40 px-3 py-1.5 text-white/85">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4 mr-1"
@@ -371,43 +391,45 @@ const MovieDetailPage = () => {
                     <span>{movie.duration}</span>
                   </div>
 
-                  <div className="bg-gray-200 text-gray-700 px-2 py-1 rounded">
+                  <div className="rounded-md border border-white/15 bg-black/40 px-3 py-1.5 text-white/85">
                     {movie.certificate}
                   </div>
 
                   {movie.genres.map((genre, index) => (
                     <span
                       key={index}
-                      className="bg-gray-100 text-gray-700 px-2 py-1 rounded"
+                      className="rounded-md border border-white/15 bg-black/40 px-3 py-1.5 text-white/75"
                     >
                       {genre}
                     </span>
                   ))}
                 </div>
 
-                <p className="text-gray-700 mb-6">{movie.description}</p>
+                <p className="mx-auto mt-5 max-w-3xl text-sm leading-7 text-white/70 md:mx-0 sm:text-base">
+                  {movie.description}
+                </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="mt-6 grid gap-5 border-t border-white/10 pt-5 sm:grid-cols-2">
                   <div>
-                    <h3 className="font-semibold text-gray-900">Director</h3>
-                    <p className="text-gray-600">{movie.director}</p>
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-white/45">Director</h3>
+                    <p className="mt-1 text-sm font-medium text-white">{movie.director}</p>
                   </div>
 
                   <div>
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-white/45">
                       Release Date
                     </h3>
-                    <p className="text-gray-600">{movie.releaseDate}</p>
+                    <p className="mt-1 text-sm font-medium text-white">{movie.releaseDate}</p>
                   </div>
                 </div>
 
-                <div className="mb-6">
-                  <h3 className="font-semibold text-gray-900 mb-2">Cast</h3>
-                  <div className="flex flex-wrap gap-2">
+                <div className="mt-5">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-white/45">Cast</h3>
+                  <div className="mt-2 flex flex-wrap justify-center gap-2 md:justify-start">
                     {movie.cast.map((actor, index) => (
                       <span
                         key={index}
-                        className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full"
+                        className="rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-1 text-sm text-white/75"
                       >
                         {actor}
                       </span>
@@ -418,38 +440,31 @@ const MovieDetailPage = () => {
             </div>
           </section>
 
-          {/* Showtimes Section */}
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold mb-6">Showtimes & Tickets</h2>
+          <section className="mb-4 border-t border-white/10 pt-10" aria-labelledby="showtimes-heading">
+            <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#aeb5ff]">
+              <Ticket className="h-4 w-4" aria-hidden="true" />
+              Reserve your seats
+            </p>
+            <h2 id="showtimes-heading" className="mb-8 text-2xl font-bold sm:text-3xl">
+              Showtimes & Tickets
+            </h2>
 
             {/* Date Selection */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold mb-3 flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2 text-[#5c6ac4]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
+            <div className="mb-9">
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-white/80">
+                <CalendarDays className="h-5 w-5 text-[#8f9af0]" aria-hidden="true" />
                 Select Date
               </h3>
 
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 sm:gap-3">
                 {dates.map((date) => (
                   <button
                     key={date.id}
-                    className={`p-3 rounded-lg text-center transition-colors ${
+                    type="button"
+                    className={`rounded-lg border px-2 py-3 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-[#8f9af0] ${
                       selectedDate === date.id
-                        ? "bg-[#5c6ac4] text-white"
-                        : "bg-white border border-gray-200 hover:border-[#5c6ac4]"
+                        ? "border-[#5c6ac4] bg-[#5c6ac4] text-white"
+                        : "border-white/10 bg-white/[0.04] text-white/75 hover:border-[#5c6ac4] hover:bg-white/[0.07]"
                     }`}
                     onClick={() => handleDateSelection(date.id)}
                   >
@@ -458,7 +473,7 @@ const MovieDetailPage = () => {
                       className={`text-sm ${
                         selectedDate === date.id
                           ? "text-white"
-                          : "text-gray-500"
+                          : "text-white/40"
                       }`}
                     >
                       {date.date}
@@ -468,32 +483,12 @@ const MovieDetailPage = () => {
               </div>
             </div>
 
-            {/* Theater Selection */}
             <div className="mb-8">
-              <h3 className="text-lg font-semibold mb-3 flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2 text-[#5c6ac4]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-white/80">
+                <MapPin className="h-5 w-5 text-[#8f9af0]" aria-hidden="true" />
                 Select Theater
                 {theatersLoading && (
-                  <div className="ml-2 animate-spin h-4 w-4 border-2 border-[#5c6ac4] border-t-transparent rounded-full"></div>
+                  <div className="ml-1 h-4 w-4 animate-spin rounded-full border-2 border-[#8f9af0] border-t-transparent" />
                 )}
               </h3>
 
@@ -502,20 +497,20 @@ const MovieDetailPage = () => {
                   {[1, 2, 3].map((index) => (
                     <div
                       key={index}
-                      className="bg-white border border-gray-200 rounded-lg p-4 animate-pulse"
+                      className="animate-pulse rounded-xl border border-white/10 bg-white/[0.04] p-5"
                     >
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
-                          <div className="h-5 bg-gray-300 rounded w-48 mb-2"></div>
-                          <div className="h-4 bg-gray-200 rounded w-64"></div>
+                          <div className="mb-2 h-5 w-48 rounded bg-white/15"></div>
+                          <div className="h-4 w-64 rounded bg-white/10"></div>
                         </div>
-                        <div className="h-4 bg-gray-200 rounded w-32"></div>
+                        <div className="h-4 w-32 rounded bg-white/10"></div>
                       </div>
                       <div className="flex gap-2">
                         {[1, 2, 3, 4].map((timeIndex) => (
                           <div
                             key={timeIndex}
-                            className="h-8 bg-gray-200 rounded w-20"
+                            className="h-8 w-20 rounded bg-white/10"
                           ></div>
                         ))}
                       </div>
@@ -532,28 +527,31 @@ const MovieDetailPage = () => {
                     return (
                       <div
                         key={theater.id}
-                        className={`p-4 rounded-lg transition-all ${
+                        className={`rounded-xl border p-5 transition-colors ${
                           selectedTheater === theater.id
-                            ? "bg-white border-2 border-[#5c6ac4] shadow-md"
-                            : "bg-white border border-gray-200 hover:border-[#5c6ac4]"
+                            ? "border-[#5c6ac4] bg-[#5c6ac4]/10"
+                            : "border-white/10 bg-white/[0.035] hover:border-white/25"
                         }`}
                         onClick={() => setSelectedTheater(theater.id)}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
                           <div>
-                            <h4 className="font-semibold text-lg">
+                            <h4 className="text-lg font-semibold text-white">
                               {theater.name}
                             </h4>
-                            <p className="text-gray-500 text-sm">
+                            <p className="mt-1 text-sm text-white/45">
                               {theater.address}
+                            </p>
+                            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-white/35">
+                              {theater.screen}
                             </p>
                           </div>
 
                           <div
                             className={`mt-2 sm:mt-0 ${
                               selectedTheater === theater.id
-                                ? "text-[#5c6ac4]"
-                                : "text-gray-500"
+                                ? "text-[#aeb5ff]"
+                                : "text-white/45"
                             }`}
                           >
                             <span className="text-sm font-medium">
@@ -568,11 +566,12 @@ const MovieDetailPage = () => {
                             {availableShowtimes.map((time, index) => (
                               <button
                                 key={index}
-                                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                type="button"
+                                className={`rounded-md border px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#8f9af0] ${
                                   selectedTheater === theater.id &&
                                   selectedTime === time
-                                    ? "bg-[#5c6ac4] text-white"
-                                    : "bg-gray-100 hover:bg-gray-200"
+                                    ? "border-[#5c6ac4] bg-[#5c6ac4] text-white"
+                                    : "border-white/10 bg-black/30 text-white/80 hover:border-[#5c6ac4] hover:text-white"
                                 }`}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -584,7 +583,7 @@ const MovieDetailPage = () => {
                             ))}
                           </div>
                         ) : (
-                          <div className="text-gray-500 text-sm">
+                          <div className="text-sm text-white/40">
                             No showtimes available for today
                           </div>
                         )}
@@ -599,6 +598,12 @@ const MovieDetailPage = () => {
       </main>
 
       <Footer />
+      <TrailerModal
+        isOpen={isTrailerOpen}
+        title={movie.title}
+        embedUrl={trailerEmbedUrl}
+        onClose={closeTrailer}
+      />
     </div>
   );
 };
