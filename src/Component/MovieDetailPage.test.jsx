@@ -112,6 +112,25 @@ test("keeps an invalid trailer from opening a broken player", async () => {
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 
+test("keeps a portrait poster out of the hero and fades the backdrop smoothly", async () => {
+  axios.get.mockResolvedValue({ data: { ...movie, image: "" } });
+  renderPage();
+
+  expect(
+    await screen.findByRole("heading", {
+      name: "Dune: Part Two",
+      level: 1,
+    })
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("img", { name: /dune: part two backdrop/i })
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("img", { name: /dune: part two poster/i })
+  ).toHaveAttribute("src", movie.banner);
+  expect(screen.getByTestId("hero-fade")).toHaveClass("bg-gradient-to-t");
+});
+
 test("preserves showtime booking data and seat navigation", async () => {
   jest.useFakeTimers().setSystemTime(new Date("2026-07-28T00:00:00.000Z"));
   renderPage();

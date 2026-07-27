@@ -65,6 +65,30 @@ test("does not close when the player surface is clicked", () => {
   expect(onClose).not.toHaveBeenCalled();
 });
 
+test("keeps the page visible and places close outside the player window", () => {
+  render(
+    <TrailerModal
+      isOpen
+      title="Dune: Part Two"
+      embedUrl={embedUrl}
+      onClose={() => {}}
+    />
+  );
+
+  const backdrop = screen.getByTestId("trailer-backdrop");
+  const dialog = screen.getByRole("dialog", {
+    name: /dune: part two trailer/i,
+  });
+  const closeButton = screen.getByRole("button", {
+    name: /close trailer/i,
+  });
+
+  expect(backdrop).toHaveClass("bg-black/55");
+  expect(backdrop).not.toHaveClass("backdrop-blur-sm");
+  expect(backdrop).toContainElement(closeButton);
+  expect(dialog).not.toContainElement(closeButton);
+});
+
 test("restores body scrolling and focus after closing", () => {
   const trigger = document.createElement("button");
   document.body.appendChild(trigger);

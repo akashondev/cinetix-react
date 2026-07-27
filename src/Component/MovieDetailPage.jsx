@@ -302,14 +302,16 @@ const MovieDetailPage = () => {
 
       <header className="relative bg-black">
         <div className="relative h-[25rem] overflow-hidden bg-black sm:h-[31rem] lg:h-[38rem]">
-          <img
-            src={movie.image || movie.banner}
-            alt={`${movie.title} backdrop`}
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/50" aria-hidden="true" />
+          {movie.image && (
+            <img
+              src={movie.image}
+              alt={`${movie.title} backdrop`}
+              className="h-full w-full object-cover"
+            />
+          )}
           <div
-            className="absolute inset-x-0 bottom-0 h-44 bg-black/55"
+            data-testid="hero-fade"
+            className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#080808] via-[#080808]/70 to-transparent"
             aria-hidden="true"
           />
           <button
