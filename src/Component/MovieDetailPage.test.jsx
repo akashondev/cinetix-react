@@ -67,7 +67,7 @@ test("renders cinematic movie information with one trailer control", async () =>
     screen.getByRole("button", {
       name: /play dune: part two trailer/i,
     })
-  ).toBeInTheDocument();
+  ).toHaveClass("h-14", "w-14");
   expect(
     screen.queryByRole("link", { name: /watch trailer/i })
   ).not.toBeInTheDocument();

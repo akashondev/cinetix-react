@@ -298,10 +298,10 @@ const MovieDetailPage = () => {
                 ? `Play ${movie.title} trailer`
                 : "Trailer unavailable"
             }
-            className="absolute left-1/2 top-[42%] flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/35 bg-black/60 text-white shadow-2xl backdrop-blur-sm transition duration-200 hover:scale-105 hover:bg-[#5c6ac4] focus:outline-none focus:ring-2 focus:ring-[#8f9af0] focus:ring-offset-4 focus:ring-offset-black disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100 disabled:hover:bg-black/60 sm:h-20 sm:w-20"
+            className="absolute left-1/2 top-[42%] flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/35 bg-black/60 text-white shadow-2xl backdrop-blur-sm transition duration-200 hover:scale-105 hover:bg-[#5c6ac4] focus:outline-none focus:ring-2 focus:ring-[#8f9af0] focus:ring-offset-4 focus:ring-offset-black disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100 disabled:hover:bg-black/60"
           >
             <Play
-              className="ml-1 h-7 w-7 fill-current sm:h-9 sm:w-9"
+              className="ml-0.5 h-6 w-6 fill-current"
               aria-hidden="true"
             />
           </button>
