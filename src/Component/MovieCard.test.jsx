@@ -28,7 +28,7 @@ test("coming soon card keeps release information without booking action", () => 
   expect(screen.queryByRole("link", { name: /book tickets/i })).not.toBeInTheDocument();
 });
 
-test("prefers the movie image over its banner", () => {
+test("prefers the portrait banner over the wide hero image", () => {
   render(
     <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <MovieCard {...movie} image="/image.jpg" banner="/banner.jpg" />
@@ -37,19 +37,19 @@ test("prefers the movie image over its banner", () => {
 
   expect(screen.getByRole("img", { name: `${movie.title} poster` })).toHaveAttribute(
     "src",
-    "/image.jpg"
+    "/banner.jpg"
   );
 });
 
-test("falls back to the movie banner when image is empty", () => {
+test("falls back to the movie image when banner is empty", () => {
   render(
     <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <MovieCard {...movie} image="" banner="/banner.jpg" />
+      <MovieCard {...movie} image="/image.jpg" banner="" />
     </MemoryRouter>
   );
 
   expect(screen.getByRole("img", { name: `${movie.title} poster` })).toHaveAttribute(
     "src",
-    "/banner.jpg"
+    "/image.jpg"
   );
 });

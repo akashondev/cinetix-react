@@ -16,7 +16,7 @@ export default function MovieCard({
   releaseDate,
 }) {
   const reduceMotion = useReducedMotion();
-  const poster = image || banner || "/api/placeholder/260/360?text=Movie";
+  const poster = banner || image || "/api/placeholder/260/360?text=Movie";
   const formattedReleaseDate = releaseDate
     ? new Date(releaseDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
     : "TBD";
