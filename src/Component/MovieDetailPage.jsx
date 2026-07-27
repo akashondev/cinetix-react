@@ -22,7 +22,6 @@ const MovieDetailPage = () => {
   const [selectedDate, setSelectedDate] = useState(0);
   const [selectedTheater, setSelectedTheater] = useState(0);
   const [selectedTime, setSelectedTime] = useState(null);
-  const [currentDateTime, setCurrentDateTime] = useState("");
   const [theatersLoading, setTheatersLoading] = useState(false);
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
 
@@ -62,30 +61,6 @@ const MovieDetailPage = () => {
   useEffect(() => {
     fetchMovie();
   }, [fetchMovie]);
-
-  useEffect(() => {
-    const updateCurrentDateTime = () => {
-      const options = {
-        timeZone: "Asia/Kolkata",
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-      };
-
-      const dateTimeIST = new Date().toLocaleString("en-IN", options);
-      setCurrentDateTime(dateTimeIST);
-    };
-
-    updateCurrentDateTime();
-    const timer = setInterval(updateCurrentDateTime, 60000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   // Handle date selection with loading animation
   const handleDateSelection = (dateId) => {
@@ -335,10 +310,6 @@ const MovieDetailPage = () => {
 
       <main className="flex-grow">
         <div className="relative z-10 mx-auto -mt-24 max-w-7xl px-4 pb-12 sm:px-6 lg:-mt-32 lg:px-8">
-          <div className="mb-5 text-right text-xs text-white/45">
-            All showtimes in IST · {currentDateTime}
-          </div>
-
           <section className="mb-14" aria-labelledby="movie-title">
             <div className="grid gap-7 md:grid-cols-[13rem_1fr] md:items-end lg:grid-cols-[15rem_1fr] lg:gap-10">
               <div className="mx-auto w-44 sm:w-52 md:mx-0 md:w-full">

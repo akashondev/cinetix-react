@@ -71,6 +71,9 @@ test("renders cinematic movie information with one trailer control", async () =>
   expect(
     screen.queryByRole("link", { name: /watch trailer/i })
   ).not.toBeInTheDocument();
+  expect(
+    screen.queryByText(/all showtimes in ist/i)
+  ).not.toBeInTheDocument();
   expect(screen.getByText("Denis Villeneuve")).toBeInTheDocument();
   expect(screen.getByText("Timothée Chalamet")).toBeInTheDocument();
 });
