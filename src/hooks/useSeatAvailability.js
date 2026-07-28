@@ -45,7 +45,7 @@ export default function useSeatAvailability(identity) {
     } finally {
       if (id === requestId.current) { setLoading(false); setRefreshing(false); }
     }
-  }, [identityKey]);
+  }, []);
 
   useEffect(() => {
     loaded.current = false;
