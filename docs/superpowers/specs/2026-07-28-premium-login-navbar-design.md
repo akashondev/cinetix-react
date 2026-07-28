@@ -33,7 +33,7 @@ Desktop navigation will use `NavLink` so Home, Movies, Theaters, and Offers can 
 
 The CineTix wordmark remains text-based and lightweight. The mobile menu retains the same destinations, uses matching active states, and closes after selection.
 
-When logged out, the right side displays a labeled `Login` button. When logged in, it displays only a compact circular initials avatar derived from the stored user name or email, without an adjacent chevron or dropdown icon. Clicking the avatar opens the account dropdown. The avatar has restrained hover/tap feedback, and the dropdown contains:
+When logged out, the right side displays a labeled `Login` button. When logged in, it displays only a compact 36px circular initials avatar derived from the stored user name or email, without an adjacent chevron or dropdown icon. Clicking the avatar opens the account dropdown. The avatar has restrained hover/tap feedback, and the dropdown contains:
 
 - a non-clickable identity header with the user name and email;
 - `My Bookings`, linked to `/ticket`;
