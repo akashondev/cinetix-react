@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ChevronDown, LogIn, Menu, Ticket, X } from "lucide-react";
+import { LogIn, Menu, Ticket, X } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 
 const NAV_ITEMS = [
@@ -32,8 +32,8 @@ function DesktopNavItem({ label, to, end }) {
       to={to}
       end={end}
       className={({ isActive }) =>
-        `group relative rounded-md px-1 py-2 text-sm font-medium transition-colors duration-200 ${
-          isActive ? "text-white" : "text-white/65 hover:text-white"
+        `group relative rounded-md px-1 py-2 text-sm font-medium ${
+          isActive ? "text-white" : "text-white/70"
         }`
       }
     >
@@ -180,21 +180,13 @@ const Navbar = () => {
                   setIsMenuOpen(false);
                   setIsAccountOpen((current) => !current);
                 }}
-                className="flex h-10 items-center gap-1.5 rounded-full border border-white/15 bg-white/5 pl-1 pr-2 text-white outline-none transition-colors duration-200 hover:border-[#7c88df]/70 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-[#8f9af0]"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#5c6ac4] text-xs font-bold tracking-wide text-white shadow-sm shadow-[#5c6ac4]/30 outline-none ring-1 ring-white/15 transition-shadow duration-200 hover:ring-[#7c88df]/80 focus-visible:ring-2 focus-visible:ring-[#8f9af0]"
                 aria-haspopup="menu"
                 aria-expanded={isAccountOpen}
                 aria-label="Open account menu"
                 {...buttonMotion}
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#5c6ac4] text-xs font-bold tracking-wide shadow-sm shadow-[#5c6ac4]/30">
-                  {initials}
-                </span>
-                <ChevronDown
-                  className={`h-3.5 w-3.5 text-white/60 transition-transform duration-200 ${
-                    isAccountOpen ? "rotate-180" : ""
-                  }`}
-                  aria-hidden="true"
-                />
+                {initials}
               </motion.button>
 
               <AnimatePresence>

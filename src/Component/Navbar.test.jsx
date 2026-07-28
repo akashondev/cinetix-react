@@ -35,10 +35,10 @@ describe("Navbar account menu", () => {
       "href",
       "/login"
     );
-    expect(screen.getByRole("link", { name: "Movies" })).toHaveAttribute(
-      "aria-current",
-      "page"
-    );
+    const moviesLink = screen.getByRole("link", { name: "Movies" });
+    expect(moviesLink).toHaveAttribute("aria-current", "page");
+    expect(moviesLink.className).not.toContain("transition-colors");
+    expect(moviesLink.className).not.toContain("hover:text-");
     expect(
       screen.queryByRole("button", { name: /sign in/i })
     ).not.toBeInTheDocument();
@@ -67,6 +67,8 @@ describe("Navbar account menu", () => {
       name: /open account menu/i,
     });
     expect(avatar).toHaveTextContent("A");
+    expect(avatar).toHaveClass("h-10", "w-10", "rounded-full");
+    expect(avatar.querySelector("svg")).not.toBeInTheDocument();
     fireEvent.click(avatar);
 
     expect(screen.getByRole("menu")).toBeInTheDocument();
