@@ -69,14 +69,6 @@ const Navbar = () => {
     };
   }, []);
 
-  const toggleSearch = () => {
-    setIsAccountOpen(false);
-    setIsSearchOpen((current) => !current);
-    if (isSearchOpen) {
-      setSearchQuery("");
-    }
-  };
-
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     console.log("Searching for:", searchQuery);
