@@ -15,6 +15,7 @@ import TicketPage from "./Component/TicketPage";
 import LoginPage from "./Component/LoginPage";
 import AdminLogin from "./Component/AdminLogin";
 import AdminPage from "./Component/AdminPage";
+import ScrollToTop from "./Component/ScrollToTop";
 
 function App() {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
@@ -29,6 +30,7 @@ function App() {
 
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <ScrollToTop />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<HomePage />} />

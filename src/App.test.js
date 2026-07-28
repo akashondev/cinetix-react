@@ -10,6 +10,10 @@ jest.mock("./Component/LoginPage", () => () => <div>Login</div>);
 jest.mock("./Component/AdminLogin", () => () => <div>Admin login</div>);
 jest.mock("./Component/AdminPage", () => () => <div>Admin</div>);
 
+beforeEach(() => {
+  window.scrollTo = jest.fn();
+});
+
 test("renders the application home route", async () => {
   render(<App />);
   expect(await screen.findByText("CineTix home")).toBeInTheDocument();
