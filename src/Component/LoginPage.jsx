@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   Eye,
@@ -9,8 +9,6 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import Navbar from "./Navbar";
-import Footer from "./Footer";
 import { API_URL } from "../config/api";
 
 const INPUT_CLASS =
@@ -141,10 +139,21 @@ const LoginPage = () => {
       };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
-      <Navbar />
+    <div
+      data-testid="standalone-login-page"
+      className="relative flex min-h-screen flex-col overflow-x-hidden bg-gray-50"
+    >
+      <div className="relative z-20 mx-auto flex w-full max-w-7xl px-5 pt-6 sm:px-8 sm:pt-8">
+        <Link
+          to="/"
+          aria-label="CineTix home"
+          className="rounded-md text-xl font-bold tracking-[-0.03em] text-gray-950 outline-none transition-opacity duration-200 hover:opacity-75 focus-visible:ring-2 focus-visible:ring-[#5c6ac4]"
+        >
+          Cine<span className="text-[#5c6ac4]">Tix</span>
+        </Link>
+      </div>
 
-      <main className="relative flex min-h-[calc(100vh-8rem)] flex-1 items-center justify-center overflow-hidden bg-gray-50 px-4 py-10 sm:px-6 sm:py-14">
+      <main className="relative flex flex-1 items-center justify-center px-4 py-8 sm:px-6 sm:py-10">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -left-28 top-16 h-72 w-72 rounded-full bg-[#5c6ac4]/[0.07] blur-3xl"
@@ -391,8 +400,6 @@ const LoginPage = () => {
           </div>
         </motion.section>
       </main>
-
-      <Footer />
     </div>
   );
 };

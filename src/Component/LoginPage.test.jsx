@@ -18,11 +18,6 @@ jest.mock("react-router-dom", () => {
     useNavigate: () => mockNavigate,
   };
 });
-jest.mock("./Navbar", () => () => (
-  <nav aria-label="Primary navigation">CineTix</nav>
-));
-jest.mock("./Footer", () => () => <footer>CineTix footer</footer>);
-
 function renderLogin() {
   return render(
     <MemoryRouter
@@ -64,7 +59,15 @@ afterEach(() => {
 test("renders a minimal accessible login card", () => {
   renderLogin();
 
-  expect(screen.getByRole("navigation")).toBeInTheDocument();
+  expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
+  expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "CineTix home" })).toHaveAttribute(
+    "href",
+    "/"
+  );
+  expect(screen.getByTestId("standalone-login-page")).toHaveClass(
+    "min-h-screen"
+  );
   expect(
     screen.getByRole("heading", { name: "Welcome back" })
   ).toBeInTheDocument();
