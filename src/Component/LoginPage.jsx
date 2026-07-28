@@ -69,6 +69,7 @@ const LoginPage = () => {
         localStorage.setItem("userEmail", email);
         localStorage.setItem("userName", data.name);
         localStorage.setItem("token", data.token);
+        localStorage.setItem("refreshToken", data.refreshToken);
 
         setSuccess("Successfully logged in! Redirecting to home page...");
 

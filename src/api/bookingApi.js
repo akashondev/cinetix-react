@@ -1,4 +1,5 @@
 import { API_URL } from "../config/api";
+import { authenticatedFetch } from "./authenticatedFetch";
 
 export class BookingApiError extends Error {
   constructor(status, payload) {
@@ -22,13 +23,20 @@ async function request(url, options = {}) {
   return payload.data;
 }
 
+async function authenticatedRequest(url, options = {}) {
+  const response = await authenticatedFetch(url, options);
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new BookingApiError(response.status, payload);
+  return payload.data;
+}
+
 export function fetchAvailability(identity, { signal } = {}) {
   const query = new URLSearchParams({ ...identity, date: normalizeCalendarDate(identity?.date) }).toString();
   return request(`${API_URL}/shows/availability?${query}`, { signal, cache: "no-store" });
 }
 
 export function createBooking(payload, token, { signal } = {}) {
-  return request(`${API_URL}/tickets`, {
+  return authenticatedRequest(`${API_URL}/tickets`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({ ...payload, date: normalizeCalendarDate(payload?.date) }),

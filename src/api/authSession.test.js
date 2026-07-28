@@ -14,7 +14,14 @@ describe("authentication session recovery", () => {
   });
 
   test("clears user authentication and announces logout", () => {
-    ["token", "isLoggedIn", "userName", "userEmail"].forEach((key) => {
+    [
+      "token",
+      "refreshToken",
+      "isLoggedIn",
+      "userName",
+      "userEmail",
+      "currentUser",
+    ].forEach((key) => {
       localStorage.setItem(key, "stored");
     });
     const listener = jest.fn();
@@ -22,7 +29,14 @@ describe("authentication session recovery", () => {
 
     clearUserSession();
 
-    ["token", "isLoggedIn", "userName", "userEmail"].forEach((key) => {
+    [
+      "token",
+      "refreshToken",
+      "isLoggedIn",
+      "userName",
+      "userEmail",
+      "currentUser",
+    ].forEach((key) => {
       expect(localStorage.getItem(key)).toBeNull();
     });
     expect(listener).toHaveBeenCalledTimes(1);

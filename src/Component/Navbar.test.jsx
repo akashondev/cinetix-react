@@ -18,6 +18,7 @@ describe("Navbar account menu", () => {
   beforeEach(() => {
     localStorage.clear();
     mockNavigate.mockClear();
+    global.fetch = jest.fn().mockResolvedValue({ ok: true });
   });
 
   test("routes logged-out users to sign in from the account control", () => {
@@ -44,6 +45,8 @@ describe("Navbar account menu", () => {
     localStorage.setItem("isLoggedIn", "true");
     localStorage.setItem("userName", "Ava");
     localStorage.setItem("userEmail", "ava@example.com");
+    localStorage.setItem("token", "access-token");
+    localStorage.setItem("refreshToken", "refresh-token");
 
     render(
       <MemoryRouter>
@@ -66,6 +69,14 @@ describe("Navbar account menu", () => {
     expect(localStorage.getItem("isLoggedIn")).toBeNull();
     expect(localStorage.getItem("userName")).toBeNull();
     expect(localStorage.getItem("userEmail")).toBeNull();
+    expect(localStorage.getItem("refreshToken")).toBeNull();
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/users/session/logout"),
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ refreshToken: "refresh-token" }),
+      })
+    );
     expect(mockNavigate).toHaveBeenCalledWith("/");
   });
 });

@@ -1,20 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { revokeAndClearUserSession } from "../api/authSession";
 
 const LogoutButton = ({ className = "", children = "Logout" }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Clear user data from localStorage
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("token");
-
-    // Dispatch custom event to notify other components (like Navbar)
-    window.dispatchEvent(new Event("user-logout"));
-
-    // Optional: Redirect to the home page
+    void revokeAndClearUserSession();
     navigate("/");
   };
 

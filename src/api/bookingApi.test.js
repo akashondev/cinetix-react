@@ -1,6 +1,9 @@
 import { createBooking, fetchAvailability, BookingApiError } from "./bookingApi";
 
-beforeEach(() => { global.fetch = jest.fn(); });
+beforeEach(() => {
+  global.fetch = jest.fn();
+  localStorage.clear();
+});
 
 test("fetches show availability without cache", async () => {
   fetch.mockResolvedValue({ ok: true, json: async () => ({ success: true, data: { bookedSeats: ["A1"] } }) });
@@ -38,4 +41,58 @@ test("creates one normalized booking request", async () => {
       body: expect.stringContaining('"date":"2026-07-28"'),
     })
   );
+});
+
+test("refreshes an expired access token and retries payment once", async () => {
+  localStorage.setItem("token", "expired-token");
+  localStorage.setItem("refreshToken", "persistent-refresh-token");
+  fetch
+    .mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+      json: async () => ({ message: "Invalid token" }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ token: "fresh-token" }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: { _id: "ticket-1" },
+      }),
+    });
+
+  await expect(
+    createBooking(
+      {
+        movie_id: "507f1f77bcf86cd799439011",
+        date: "2026-07-28",
+        seats: ["A1"],
+      },
+      "expired-token"
+    )
+  ).resolves.toEqual({ _id: "ticket-1" });
+
+  expect(fetch).toHaveBeenNthCalledWith(
+    2,
+    expect.stringContaining("/users/session/refresh"),
+    expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({
+        refreshToken: "persistent-refresh-token",
+      }),
+    })
+  );
+  expect(fetch).toHaveBeenNthCalledWith(
+    3,
+    expect.stringContaining("/tickets"),
+    expect.objectContaining({
+      headers: expect.objectContaining({
+        Authorization: "Bearer fresh-token",
+      }),
+    })
+  );
+  expect(localStorage.getItem("token")).toBe("fresh-token");
 });
