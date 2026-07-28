@@ -67,7 +67,7 @@ describe("Navbar account menu", () => {
       name: /open account menu/i,
     });
     expect(avatar).toHaveTextContent("A");
-    expect(avatar).toHaveClass("h-10", "w-10", "rounded-full");
+    expect(avatar).toHaveClass("h-9", "w-9", "rounded-full");
     expect(avatar.querySelector("svg")).not.toBeInTheDocument();
     fireEvent.click(avatar);
 

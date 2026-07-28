@@ -180,7 +180,7 @@ const Navbar = () => {
                   setIsMenuOpen(false);
                   setIsAccountOpen((current) => !current);
                 }}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#5c6ac4] text-xs font-bold tracking-wide text-white shadow-sm shadow-[#5c6ac4]/30 outline-none ring-1 ring-white/15 transition-shadow duration-200 hover:ring-[#7c88df]/80 focus-visible:ring-2 focus-visible:ring-[#8f9af0]"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#5c6ac4] text-xs font-bold tracking-wide text-white shadow-sm shadow-[#5c6ac4]/30 outline-none ring-1 ring-white/15 transition-shadow duration-200 hover:ring-[#7c88df]/80 focus-visible:ring-2 focus-visible:ring-[#8f9af0]"
                 aria-haspopup="menu"
                 aria-expanded={isAccountOpen}
                 aria-label="Open account menu"
