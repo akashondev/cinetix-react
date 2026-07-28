@@ -56,8 +56,25 @@ function MovieSection({ title, viewAllTo, movies, category, loading, error, empt
       </Reveal>
 
       {loading ? (
-        <div className="flex h-48 items-center justify-center" role="status" aria-label={`Loading ${title}`}>
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-[#5c6ac4]" />
+        <div
+          className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-3 xl:grid-cols-4"
+          role="status"
+          aria-label={`Loading ${title}`}
+        >
+          {[0, 1, 2, 3].map((index) => (
+            <div
+              key={index}
+              data-testid="movie-card-skeleton"
+              className="animate-pulse overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+            >
+              <div className="aspect-[2/3] bg-gray-200" />
+              <div className="space-y-3 p-4">
+                <div className="h-4 w-3/4 rounded bg-gray-200" />
+                <div className="h-3 w-1/2 rounded bg-gray-100" />
+                <div className="h-9 rounded-md bg-gray-200" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : error ? (
         <div className="border border-red-200 bg-red-50 px-4 py-8 text-center text-red-700">{error}</div>

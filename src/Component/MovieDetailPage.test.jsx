@@ -53,6 +53,16 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
+test("shows an immediate page-shaped skeleton without a loading circle", () => {
+  axios.get.mockReturnValue(new Promise(() => {}));
+  renderPage();
+
+  expect(
+    screen.getByRole("status", { name: "Loading movie details" })
+  ).toBeInTheDocument();
+  expect(document.querySelector(".animate-spin")).not.toBeInTheDocument();
+});
+
 test("renders cinematic movie information with one trailer control", async () => {
   renderPage();
 

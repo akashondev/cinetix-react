@@ -171,8 +171,37 @@ const TicketPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#5c6ac4]"></div>
+      <div className="flex min-h-screen flex-col bg-gray-50">
+        <Navbar />
+        <main className="mx-auto w-full max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8">
+          <section className="mb-8 text-center">
+            <h1 className="text-2xl font-bold md:text-3xl">Your Tickets</h1>
+            <p className="mt-2 text-gray-500">Preparing your latest bookings</p>
+          </section>
+          <div
+            role="status"
+            aria-label="Loading your tickets"
+            className="mx-auto max-w-3xl space-y-6"
+          >
+            {[0, 1].map((index) => (
+              <div
+                key={index}
+                className="animate-pulse overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+              >
+                <div className="h-14 bg-gray-900/90" />
+                <div className="grid gap-6 p-6 md:grid-cols-[1fr_8rem]">
+                  <div className="space-y-4">
+                    <div className="h-6 w-2/3 rounded bg-gray-200" />
+                    <div className="h-4 w-full rounded bg-gray-100" />
+                    <div className="h-4 w-4/5 rounded bg-gray-100" />
+                  </div>
+                  <div className="aspect-square rounded-lg bg-gray-100" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }

@@ -254,11 +254,26 @@ const MovieDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#080808]">
-        <div
-          className="h-14 w-14 animate-spin rounded-full border-2 border-white/15 border-t-[#8f9af0]"
-          aria-label="Loading movie"
-        />
+      <div className="min-h-screen bg-[#080808] text-white">
+        <Navbar />
+        <main
+          role="status"
+          aria-label="Loading movie details"
+          className="animate-pulse"
+        >
+          <div className="mx-auto grid min-h-[34rem] max-w-7xl items-end gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:px-8">
+            <div className="space-y-5">
+              <div className="h-4 w-32 rounded bg-white/10" />
+              <div className="h-12 max-w-xl rounded bg-white/15" />
+              <div className="h-5 max-w-md rounded bg-white/10" />
+              <div className="h-24 max-w-2xl rounded bg-white/10" />
+            </div>
+            <div className="aspect-[2/3] rounded-2xl bg-white/10" />
+          </div>
+          <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+            <div className="h-72 rounded-2xl border border-white/10 bg-white/[0.04]" />
+          </div>
+        </main>
       </div>
     );
   }
@@ -460,9 +475,6 @@ const MovieDetailPage = () => {
               <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-white/80">
                 <MapPin className="h-5 w-5 text-[#8f9af0]" aria-hidden="true" />
                 Select Theater
-                {theatersLoading && (
-                  <div className="ml-1 h-4 w-4 animate-spin rounded-full border-2 border-[#8f9af0] border-t-transparent" />
-                )}
               </h3>
 
               {theatersLoading ? (

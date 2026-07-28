@@ -16,6 +16,22 @@ jest.mock("./Navbar", () => () => <nav>Navigation</nav>);
 jest.mock("./Footer", () => () => <footer>Footer</footer>);
 jest.mock("./MovieCard", () => ({ title, category }) => <div>{category}:{title}</div>);
 
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+test("shows movie card skeletons instead of loading circles", () => {
+  axios.get.mockReturnValue(new Promise(() => {}));
+
+  render(<MemoryRouter><HomePage /></MemoryRouter>);
+
+  expect(
+    screen.getByRole("status", { name: "Loading Now Showing" })
+  ).toBeInTheDocument();
+  expect(screen.getAllByTestId("movie-card-skeleton")).toHaveLength(8);
+  expect(document.querySelector(".animate-spin")).not.toBeInTheDocument();
+});
+
 test("fetches the production movies URL and groups movies by release date", async () => {
   axios.get.mockResolvedValue({ data: [
     { _id: "showing", title: "Showing", category: "comingSoon", releaseDate: "2020-01-01", banner: "/showing.jpg" },
