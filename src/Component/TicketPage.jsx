@@ -6,6 +6,15 @@ import { QRCodeSVG } from "qrcode.react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { API_URL } from "../config/api";
+import { authenticatedFetch } from "../api/authenticatedFetch";
+import {
+  clearUserSession,
+  isInvalidSessionStatus,
+} from "../api/authSession";
+import {
+  hasShowPassed,
+  sortTicketsNewestFirst,
+} from "../utils/ticketLifecycle";
 
 const TicketPage = () => {
   const navigate = useNavigate();
@@ -15,6 +24,8 @@ const TicketPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showQR, setShowQR] = useState({});
+  const [deletingTicket, setDeletingTicket] = useState(null);
+  const [deleteError, setDeleteError] = useState("");
 
   // Toggle QR code display for specific ticket
   const toggleQR = (ticketId) => {
@@ -28,18 +39,20 @@ const TicketPage = () => {
   const groupTickets = useCallback((tickets) => {
     const grouped = {};
 
-    tickets.forEach((ticket) => {
+    sortTicketsNewestFirst(tickets).forEach((ticket) => {
       const key = `${ticket.movie_id}-${ticket.date}-${ticket.time}`;
       if (!grouped[key]) {
         grouped[key] = {
           ...ticket,
           seats: [],
+          ticketIds: [],
           qrData: JSON.stringify({
             movie: ticket.movie_title,
             seats: [],
           }),
         };
       }
+      grouped[key].ticketIds.push(ticket._id);
       ticket.seats.forEach((seat) => {
         grouped[key].seats.push(seat);
         // Update QR data with all seats
@@ -63,16 +76,15 @@ const TicketPage = () => {
         return;
       }
 
-      const response = await fetch(`${API_URL}/tickets`, {
+      const response = await authenticatedFetch(`${API_URL}/tickets`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
-        if (response.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("currentUser");
+        if (isInvalidSessionStatus(response.status)) {
+          clearUserSession();
           navigate("/login");
           return;
         }
@@ -93,6 +105,42 @@ const TicketPage = () => {
       setLoading(false);
     }
   }, [groupTickets, navigate]);
+
+  const handleDeleteExpired = async (key) => {
+    const ticket = groupedTickets[key];
+    if (!ticket || !hasShowPassed(ticket) || deletingTicket) return;
+
+    setDeletingTicket(key);
+    setDeleteError("");
+    try {
+      await Promise.all(
+        ticket.ticketIds.map(async (ticketId) => {
+          const response = await authenticatedFetch(
+            `${API_URL}/tickets/${ticketId}/history`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+          if (!response.ok) {
+            const payload = await response.json().catch(() => ({}));
+            throw new Error(payload.message || "Failed to delete expired ticket");
+          }
+        })
+      );
+      setGroupedTickets((current) => {
+        const next = { ...current };
+        delete next[key];
+        return next;
+      });
+    } catch (err) {
+      setDeleteError(err.message || "Failed to delete expired ticket");
+    } finally {
+      setDeletingTicket(null);
+    }
+  };
 
   useEffect(() => {
     fetchTickets();
@@ -326,6 +374,14 @@ const TicketPage = () => {
               Share
             </button>
           </div>
+          {deleteError && (
+            <p
+              role="alert"
+              className="mx-auto mb-6 max-w-3xl rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            >
+              {deleteError}
+            </p>
+          )}
 
           {/* Tickets */}
           <div className="max-w-3xl mx-auto mb-8">
@@ -485,13 +541,24 @@ const TicketPage = () => {
                       <div className="absolute left-0 -top-3 w-6 h-6 rounded-full bg-gray-50"></div>
                       <div className="absolute right-0 -top-3 w-6 h-6 rounded-full bg-gray-50"></div>
 
-                      <div className="p-4 flex justify-between items-center">
+                      <div className="p-4 flex flex-wrap justify-between gap-3 items-center">
                         <div>
                           <p className="text-sm text-gray-500">
                             Booking ID: {ticket.session_id || ticket._id}
                           </p>
                         </div>
-                        <div>
+                        <div className="flex items-center gap-3">
+                          {hasShowPassed(ticket) && (
+                            <button
+                              type="button"
+                              aria-label={`Delete expired ticket ${ticket.movie_title}`}
+                              disabled={deletingTicket === key}
+                              onClick={() => handleDeleteExpired(key)}
+                              className="no-print rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {deletingTicket === key ? "Deleting…" : "Delete"}
+                            </button>
+                          )}
                           <p className="text-sm text-gray-500">
                             www.cinetix.com
                           </p>
