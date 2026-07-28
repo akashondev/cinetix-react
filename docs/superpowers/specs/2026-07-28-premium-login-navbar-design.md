@@ -27,13 +27,13 @@ The card will enter with a 250ms opacity and vertical-position transition. Butto
 Desktop navigation will use `NavLink` so Home, Movies, Theaters, and Offers can expose a subtle active state. Each link will have:
 
 - improved horizontal spacing and typography;
-- a low-cost color transition;
+- stable text color and font weight during hover;
 - a thin indigo underline that scales horizontally over 200–250ms;
 - a persistent understated underline for the active route.
 
 The CineTix wordmark remains text-based and lightweight. The mobile menu retains the same destinations, uses matching active states, and closes after selection.
 
-When logged out, the right side displays a labeled `Login` button. When logged in, it displays a compact initials avatar derived from the stored user name or email. The avatar has restrained hover/tap feedback and opens a modern dropdown containing:
+When logged out, the right side displays a labeled `Login` button. When logged in, it displays only a compact circular initials avatar derived from the stored user name or email, without an adjacent chevron or dropdown icon. Clicking the avatar opens the account dropdown. The avatar has restrained hover/tap feedback, and the dropdown contains:
 
 - a non-clickable identity header with the user name and email;
 - `My Bookings`, linked to `/ticket`;
