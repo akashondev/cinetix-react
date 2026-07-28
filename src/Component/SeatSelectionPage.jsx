@@ -265,35 +265,17 @@ export default function SeatSelectionPage() {
           )}
         </AnimatePresence>
 
-        {loading && (
-          <motion.section
-            {...reveal}
-            aria-label="Loading seat availability"
-            className="rounded-2xl border border-gray-200 bg-white px-6 py-20 text-center shadow-sm"
-          >
-            <div
-              className={`mx-auto h-11 w-11 rounded-full border-2 border-gray-200 border-t-[#5c6ac4] ${
-                reduceMotion ? "" : "animate-spin"
-              }`}
-              aria-hidden="true"
-            />
-            <p className="mt-5 text-sm font-medium text-gray-600">
-              Loading current seat availability...
-            </p>
-          </motion.section>
-        )}
-
-        {!loading && error && (
+        {error && (
           <motion.div
             {...reveal}
             role="alert"
-            className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800 shadow-sm"
+            className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800"
           >
             <p className="font-semibold">{error}</p>
             <button
               type="button"
               onClick={refetch}
-              className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg border border-red-300 bg-white px-4 text-sm font-semibold transition-colors hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-red-300 bg-white px-3 text-sm font-semibold transition-colors hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
               Retry
@@ -301,7 +283,7 @@ export default function SeatSelectionPage() {
           </motion.div>
         )}
 
-        {!loading && !error && (
+        {(
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <motion.section
               {...reveal}
@@ -354,8 +336,13 @@ export default function SeatSelectionPage() {
                               )}
                               <Seat
                                 id={seat}
-                                booked={booked.has(seat)}
-                                selected={selectedSeats.includes(seat)}
+                                placeholder={
+                                  loading || (!availability && Boolean(error))
+                                }
+                                booked={!loading && booked.has(seat)}
+                                selected={
+                                  !loading && selectedSeats.includes(seat)
+                                }
                                 onClick={toggleSeat}
                                 reduceMotion={reduceMotion}
                               />
@@ -459,12 +446,10 @@ export default function SeatSelectionPage() {
                     className="mt-4 inline-flex items-center gap-2 text-xs font-medium text-gray-500"
                   >
                     <RefreshCw
-                      className={`h-3.5 w-3.5 ${
-                        reduceMotion ? "" : "animate-spin"
-                      }`}
+                      className="h-3.5 w-3.5"
                       aria-hidden="true"
                     />
-                    Refreshing availability...
+                    Checking for seat updates…
                   </p>
                 )}
 

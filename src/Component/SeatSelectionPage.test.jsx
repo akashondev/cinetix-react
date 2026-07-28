@@ -296,16 +296,30 @@ test("stays on the seat page when the final availability check fails", async () 
   );
 });
 
-test("keeps loading, sold-out, and refresh states clear and usable", () => {
+test("renders the full neutral disabled seat map while availability loads", () => {
   mockAvailabilityState = {
     ...mockAvailabilityState,
+    availability: null,
+    bookedSeats: [],
     loading: true,
   };
-  const { rerender } = renderPage();
-  expect(
-    screen.getByRole("region", { name: "Loading seat availability" })
-  ).toHaveTextContent("Loading current seat availability...");
+  renderPage();
 
+  expect(
+    screen.queryByText("Loading current seat availability...")
+  ).not.toBeInTheDocument();
+  expect(screen.getByRole("region", { name: "Seat map" })).toBeInTheDocument();
+  const seat = screen.getByRole("button", {
+    name: "Seat A1, checking availability",
+  });
+  expect(seat).toBeDisabled();
+  expect(seat).toHaveAttribute("data-seat-state", "placeholder");
+  expect(
+    document.querySelectorAll('[data-seat-state="placeholder"]')
+  ).toHaveLength(80);
+});
+
+test("keeps sold-out and background refresh states non-blocking", () => {
   mockAvailabilityState = {
     ...mockAvailabilityState,
     loading: false,
@@ -316,20 +330,18 @@ test("keeps loading, sold-out, and refresh states clear and usable", () => {
       soldOut: true,
     },
   };
-  rerender(
-    <MemoryRouter
-      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-    >
-      <SeatSelectionPage />
-    </MemoryRouter>
-  );
+  renderPage();
 
   expect(
     screen.getByRole("status", { name: "Booking status" })
   ).toHaveTextContent("All tickets for this show are sold out.");
   expect(
     screen.getByRole("status", { name: "Availability refresh" })
-  ).toHaveTextContent("Refreshing availability...");
+  ).toHaveTextContent("Checking for seat updates");
+  expect(screen.getByRole("button", { name: "Seat A1" })).toHaveAttribute(
+    "data-seat-state",
+    "available"
+  );
   expect(
     screen.getByRole("button", { name: /proceed to payment/i })
   ).toBeDisabled();
