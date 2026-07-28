@@ -6,7 +6,7 @@ Redesign the CineTix login experience and shared navbar to feel clean, modern, r
 
 ## Login page
 
-The login page will use the shared `Navbar` and `Footer` so branding and navigation remain consistent across the application. Its main content will be a restrained off-white canvas with one centered authentication card.
+The login page will be a standalone full-viewport authentication experience without the shared `Navbar` or `Footer`. Its main content will be a restrained off-white canvas with one centered authentication card. A compact CineTix wordmark inside the page will link back to Home so branding and escape navigation remain available without adding the full site chrome.
 
 The card will include:
 
@@ -53,7 +53,7 @@ Redirect timers created by the login page will be cleared on unmount.
 
 ## Components and boundaries
 
-- `LoginPage.jsx` owns login/signup state, validation, API calls, and the authentication card.
+- `LoginPage.jsx` owns the standalone full-viewport shell, home-linked CineTix wordmark, login/signup state, validation, API calls, and the authentication card.
 - `Navbar.jsx` owns responsive navigation and account-menu presentation.
 - `LogoutButton.jsx` remains the single logout action implementation.
 - No backend changes or new routes are required.
