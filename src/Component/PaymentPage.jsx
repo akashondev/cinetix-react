@@ -1,688 +1,562 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  CreditCard,
+  LockKeyhole,
+  MapPin,
+  ShieldCheck,
+  Ticket,
+} from "lucide-react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import { normalizeCalendarDate } from "../api/bookingApi";
-import { API_URL } from "../config/api";
+import {
+  BookingApiError,
+  createBooking,
+  normalizeCalendarDate,
+} from "../api/bookingApi";
 import { clearUserSession, isInvalidSessionStatus } from "../api/authSession";
 
-const PaymentPage = () => {
-  const [cardNumberError, setCardNumberError] = useState("");
-  const [cardNameError, setCardNameError] = useState("");
-  const [expiryDateError, setExpiryDateError] = useState("");
-  const [cvvError, setCvvError] = useState("");
-  const [emailError, setEmailError] = useState("");
+const TICKET_PRICE = 180;
+const SERVICE_FEE = 1.5;
+
+function readJson(key, fallback) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function formatCardNumber(value) {
+  return value
+    .replace(/\D/g, "")
+    .slice(0, 16)
+    .replace(/(\d{4})(?=\d)/g, "$1 ");
+}
+
+function FieldError({ children }) {
+  if (!children) return null;
+  return <p className="mt-1.5 text-xs font-medium text-red-600">{children}</p>;
+}
+
+function SummaryRow({ label, value, strong = false }) {
+  return (
+    <div
+      className={`flex items-center justify-between gap-4 ${
+        strong ? "text-base font-bold text-gray-950" : "text-sm text-gray-600"
+      }`}
+    >
+      <span>{label}</span>
+      <span className="shrink-0">{value}</span>
+    </div>
+  );
+}
+
+export default function PaymentPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const processingRef = useRef(false);
-
-  // Get data from location state first, then fallback to localStorage
-  const {
-    movie: locationMovie,
-    theater: locationTheater,
-    selectedDate,
-    selectedTime,
-    selectedSeats: locationSelectedSeats,
-  } = location.state || {};
-
-  const bookingData = JSON.parse(localStorage.getItem("selectedMovie")) || {};
-  const localStorageSelectedSeats =
-    JSON.parse(localStorage.getItem("selectedSeats")) || [];
-
-  // Combine data sources - prefer location state over localStorage
-  const movie = locationMovie || {
+  const bookingData = useMemo(() => readJson("selectedMovie", {}), []);
+  const storedSeats = useMemo(() => readJson("selectedSeats", []), []);
+  const routeState = location.state || {};
+  const movie = routeState.movie || {
     id: bookingData.movieId,
     title: bookingData.movieTitle,
     image: bookingData.movieImage,
-    banner: bookingData.movieBanner,
-    rating: bookingData.movieRating,
-    duration: bookingData.movieDuration,
-    genres: bookingData.movieGenres,
-    certificate: bookingData.movieCertificate,
   };
-
-  const theater = locationTheater || {
+  const theater = routeState.theater || {
     name: bookingData.theaterName || "",
     address: bookingData.theaterAddress || "",
     screen: bookingData.theaterScreen || "Screen 1",
   };
+  const selectedDate =
+    routeState.selectedDate ||
+    normalizeCalendarDate(bookingData.dateISO || bookingData.dateDisplay);
+  const selectedTime = routeState.selectedTime || bookingData.showTime;
+  const selectedSeats =
+    routeState.selectedSeats || bookingData.selectedSeats || storedSeats;
 
-  const selectedSeats = locationSelectedSeats || localStorageSelectedSeats;
-
-  // State variables
-  const [ticketPrice] = useState(180);
-  const [paymentMethod, setPaymentMethod] = useState("card");
   const [cardNumber, setCardNumber] = useState("");
   const [cardName, setCardName] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [cvv, setCvv] = useState("");
   const [email, setEmail] = useState("");
+  const [errors, setErrors] = useState({});
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
+  const [confirmation, setConfirmation] = useState(null);
 
-  // Check authentication on component mount
+  const subtotal = selectedSeats.length * TICKET_PRICE;
+  const serviceFee = selectedSeats.length * SERVICE_FEE;
+  const total = subtotal + serviceFee;
+  const hasBookingContext = Boolean(
+    movie?.id &&
+      movie?.title &&
+      theater?.name &&
+      selectedDate &&
+      selectedTime &&
+      selectedSeats.length
+  );
+
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    // const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-    console.log(token);
-
-    if (!token) {
-      // Redirect to login if not authenticated
+    if (!localStorage.getItem("token")) {
       navigate("/login", {
         state: {
           from: location.pathname,
           message: "Please login to complete your booking",
         },
       });
-      return;
     }
+  }, [location.pathname, navigate]);
 
-    // Pre-fill email if user is logged in
-    // if (currentUser.email && !email) {
-    //   setEmail(currentUser.email);
-    // }
-  }, [navigate, location.pathname, email]);
+  useEffect(() => {
+    if (!confirmation) return undefined;
+    const timer = window.setTimeout(() => {
+      navigate("/ticket", {
+        state: { bookingConfirmation: confirmation, justCompleted: true },
+      });
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [confirmation, navigate]);
 
-  // Validate movie ID format (should be MongoDB ObjectId)
-  const isValidObjectId = (id) => {
-    return /^[0-9a-fA-F]{24}$/.test(id);
+  const validateExpiry = (value) => {
+    if (!/^\d{2}\/\d{2}$/.test(value)) return "Invalid format";
+    const [month, year] = value.split("/").map(Number);
+    const now = new Date();
+    const currentYear = now.getFullYear() % 100;
+    const currentMonth = now.getMonth() + 1;
+    if (
+      month < 1 ||
+      month > 12 ||
+      year < currentYear ||
+      (year === currentYear && month < currentMonth)
+    ) {
+      return "Invalid expiry date";
+    }
+    return "";
   };
 
-  // Format card number with spaces
-  const formatCardNumber = (value) => {
-    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || "";
-    const parts = [];
-
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-
-    if (parts.length) {
-      return parts.join(" ");
-    }
-    return value;
-  };
-
-  // Calculate totals
-  const subtotal = selectedSeats.length * ticketPrice;
-  const serviceFee = selectedSeats.length * 1.5;
-  const total = subtotal + serviceFee;
-
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     if (processingRef.current) return;
-
     if (!cardNumber || !cardName || !expiryDate || !cvv || !email) {
-      alert("Please fill in all fields");
+      window.alert("Please fill in all fields");
+      return;
+    }
+    if (!/^[0-9a-fA-F]{24}$/.test(movie.id)) {
+      window.alert("Invalid movie ID. Please restart your booking process.");
+      navigate("/");
       return;
     }
 
-    // Validate movie ID
-    if (!movie.id || !isValidObjectId(movie.id)) {
-      alert("Invalid movie ID. Please restart your booking process.");
-      navigate("/");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.alert("Please login to complete your booking");
+      navigate("/login");
       return;
     }
 
     processingRef.current = true;
     setIsProcessing(true);
+    const sessionId = `booking_${Date.now()}`;
+    const bookingConfirmation = {
+      id: sessionId,
+      movie,
+      theater,
+      selectedSeats,
+      selectedDate,
+      selectedTime,
+      paymentInfo: {
+        method: "card",
+        amount: total,
+        transactionId: `TXN${Date.now()}`,
+        email,
+      },
+      bookingTime: new Date().toISOString(),
+      status: "confirmed",
+    };
+    const ticketData = {
+      movie_id: movie.id,
+      movie_title: movie.title,
+      seats: selectedSeats,
+      cinema: theater.name,
+      screen: theater.screen || bookingData.theaterScreen || "Screen 1",
+      time: selectedTime,
+      date: normalizeCalendarDate(selectedDate),
+      day: new Date(selectedDate).toLocaleDateString("en-US", {
+        weekday: "long",
+      }),
+      price: TICKET_PRICE,
+      location: theater.address,
+      session_id: sessionId,
+    };
 
     try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        alert("Please login to complete your booking");
-        navigate("/login");
+      const ticket = await createBooking(ticketData, token);
+      const finalConfirmation = {
+        ...bookingConfirmation,
+        ticketId: ticket._id,
+      };
+      localStorage.setItem(
+        "bookingConfirmation",
+        JSON.stringify(finalConfirmation)
+      );
+      localStorage.removeItem("selectedMovie");
+      localStorage.removeItem("selectedSeats");
+      setIsProcessing(false);
+      setConfirmation(finalConfirmation);
+    } catch (error) {
+      if (
+        error instanceof BookingApiError &&
+        isInvalidSessionStatus(error.status)
+      ) {
+        clearUserSession();
+        window.alert("Your session has expired. Please login again.");
+        navigate("/login", { state: { from: location.pathname } });
         return;
       }
-
-      // Generate booking confirmation
-      const bookingConfirmation = {
-        id: `booking_${Date.now()}`,
-        movie,
-        theater,
-        selectedSeats,
-        selectedDate: selectedDate || bookingData.dateDisplay,
-        selectedTime: selectedTime || bookingData.showTime,
-        paymentInfo: {
-          method: paymentMethod,
-          amount: total,
-          transactionId: `TXN${Date.now()}`,
-          email: email,
-        },
-        bookingTime: new Date().toISOString(),
-        // userId: currentUser._id,
-        // userEmail: currentUser.email || email,
-        status: "confirmed",
-      };
-
-      // Prepare ticket data for API
-      const ticketData = {
-        movie_id: movie.id, // This should be a valid MongoDB ObjectId
-        movie_title: movie.title,
-        seats: selectedSeats,
-        cinema: theater.name,
-        screen: theater.screen || bookingData.theaterScreen || "Screen 1",
-        time: selectedTime || bookingData.showTime,
-        date: normalizeCalendarDate(selectedDate || bookingData.dateISO),
-        day: new Date(
-          selectedDate || bookingData.dateISO
-        ).toLocaleDateString("en-US", {
-          weekday: "long",
-        }),
-        price: ticketPrice,
-        location: theater.address,
-        session_id: bookingConfirmation.id,
-      };
-
-      console.log("Submitting ticket data:", ticketData);
-      console.log("User token:", token ? "Present" : "Missing");
-
-      // Save to backend API
-      try {
-        const response = await fetch(`${API_URL}/tickets`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(ticketData),
-        });
-
-        let responseData;
-        const contentType = response.headers.get("content-type");
-
-        if (contentType && contentType.includes("application/json")) {
-          responseData = await response.json();
-        } else {
-          const responseText = await response.text();
-          console.error("Non-JSON response:", responseText);
-          throw new Error("Server returned invalid response format");
-        }
-
-        if (!response.ok) {
-          console.error("API Error response:", responseData);
-
-          if (isInvalidSessionStatus(response.status)) {
-            clearUserSession();
-            alert("Your session has expired. Please login again.");
-            navigate("/login", { state: { from: location.pathname } });
-            return;
-          }
-
-          if (response.status === 409) {
-            processingRef.current = false;
-            setIsProcessing(false);
-            navigate("/seats", { state: { bookingError: responseData.message, conflictingSeats: responseData.conflictingSeats || [] } });
-            return;
-          }
-          throw new Error(responseData.message || `Server error: ${response.status}`);
-        }
-
-        console.log("Ticket saved successfully:", responseData);
-
-        // Save booking confirmation locally with server ticket ID
-        const finalBookingConfirmation = {
-          ...bookingConfirmation,
-          ticketId: responseData.data._id,
-        };
-
-        localStorage.setItem(
-          "bookingConfirmation",
-          JSON.stringify(finalBookingConfirmation)
-        );
-
-        // Clear temporary booking data
-        localStorage.removeItem("selectedMovie");
-        localStorage.removeItem("selectedSeats");
-
-        setIsProcessing(false);
-        setIsComplete(true);
-
-        // Redirect to tickets page
-        setTimeout(() => {
-          navigate("/ticket", {
-            state: {
-              bookingConfirmation: finalBookingConfirmation,
-              justCompleted: true,
-            },
-          });
-        }, 2000);
-      } catch (apiError) {
-        console.error("API call failed:", apiError);
+      if (error instanceof BookingApiError && error.status === 409) {
         processingRef.current = false;
         setIsProcessing(false);
-
-        // Show more specific error message
-        if (apiError.message.includes("Invalid movie ID")) {
-          alert(
-            "There was an issue with the movie selection. Please restart your booking."
-          );
-          navigate("/");
-        } else if (apiError.message.includes("Missing required fields")) {
-          alert(
-            "Some booking information is missing. Please restart your booking."
-          );
-          navigate("/");
-        } else {
-          alert(`Booking failed: ${apiError.message}. Please try again.`);
-        }
+        navigate("/seats", {
+          state: {
+            bookingError: error.payload?.message || error.message,
+            conflictingSeats: error.payload?.conflictingSeats || [],
+          },
+        });
+        return;
       }
-    } catch (error) {
-      console.error("Payment processing error:", error);
       processingRef.current = false;
       setIsProcessing(false);
-      alert(`Payment failed: ${error.message}. Please try again.`);
+      window.alert(`Booking failed: ${error.message}. Please try again.`);
     }
   };
 
-  if (!movie || !theater) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#5c6ac4]"></div>
-      </div>
-    );
-  }
+  const inputClass = (error) =>
+    `h-12 w-full rounded-xl border bg-white px-4 text-sm text-gray-950 outline-none transition-colors placeholder:text-gray-400 focus:ring-2 focus:ring-[#5c6ac4]/20 ${
+      error
+        ? "border-red-400 focus:border-red-500"
+        : "border-gray-200 focus:border-[#5c6ac4]"
+    }`;
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col bg-gray-50 text-gray-950">
       <Navbar />
+      <main className="mx-auto w-full max-w-7xl flex-grow px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-[#5c6ac4] transition-colors hover:text-[#4d5ab5] focus:outline-none focus:ring-2 focus:ring-[#5c6ac4]"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          Back to seat selection
+        </button>
 
-      <main className="flex-grow bg-gray-50 py-8">
-        <div className="container mx-auto px-6">
-          {!isComplete ? (
-            <>
-              {/* Back button */}
-              <button
-                onClick={() => navigate(-1)}
-                className="inline-flex items-center text-[#5c6ac4] hover:underline mb-6"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Back to seat selection</span>
-              </button>
-
-              {/* Page header */}
-              <section className="mb-8">
-                <h1 className="text-2xl font-bold mb-2">Payment Details</h1>
-                <p className="text-gray-600">
-                  Complete your booking by providing payment information
+        {!hasBookingContext ? (
+          <section
+            role="alert"
+            className="mx-auto max-w-lg rounded-2xl border border-amber-200 bg-white p-8 text-center shadow-sm"
+          >
+            <Ticket className="mx-auto h-10 w-10 text-amber-500" aria-hidden="true" />
+            <h1 className="mt-4 text-2xl font-bold">Booking details are unavailable</h1>
+            <p className="mt-2 text-sm leading-6 text-gray-600">
+              Return to the movies page and choose a show and seats again.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/movies")}
+              className="mt-6 h-11 rounded-xl bg-[#5c6ac4] px-5 text-sm font-semibold text-white hover:bg-[#4d5ab5]"
+            >
+              Back to movies
+            </button>
+          </section>
+        ) : (
+          <>
+            <header className="mb-8">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="h-px w-8 bg-[#5c6ac4]" aria-hidden="true" />
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#5c6ac4]">
+                  Secure checkout
                 </p>
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                Payment Details
+              </h1>
+              <p className="mt-3 max-w-2xl text-gray-600">
+                Complete your booking with secure payment information.
+              </p>
+            </header>
+
+            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-8">
+              <section
+                aria-label="Payment information"
+                className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+              >
+                <div className="flex items-center gap-3 border-b border-gray-100 px-5 py-5 sm:px-7">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#eef0ff] text-[#5c6ac4]">
+                    <CreditCard className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <h2 className="font-bold">Credit / Debit Card</h2>
+                    <p className="text-xs text-gray-500">Your details are encrypted</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-5 sm:p-7">
+                  <fieldset disabled={isProcessing || Boolean(confirmation)}>
+                    <div className="space-y-5">
+                      <div>
+                        <label htmlFor="card-number" className="mb-2 block text-sm font-semibold">
+                          Card Number
+                        </label>
+                        <input
+                          id="card-number"
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="cc-number"
+                          className={inputClass(errors.cardNumber)}
+                          placeholder="1234 5678 9012 3456"
+                          value={cardNumber}
+                          onChange={(event) => {
+                            const value = formatCardNumber(event.target.value);
+                            setCardNumber(value);
+                            const cleaned = value.replace(/\s/g, "");
+                            setErrors((current) => ({
+                              ...current,
+                              cardNumber:
+                                cleaned && !/^\d{13,16}$/.test(cleaned)
+                                  ? "Invalid card number"
+                                  : "",
+                            }));
+                          }}
+                          maxLength={19}
+                          required
+                        />
+                        <FieldError>{errors.cardNumber}</FieldError>
+                      </div>
+
+                      <div>
+                        <label htmlFor="card-name" className="mb-2 block text-sm font-semibold">
+                          Cardholder Name
+                        </label>
+                        <input
+                          id="card-name"
+                          type="text"
+                          autoComplete="cc-name"
+                          className={inputClass(errors.cardName)}
+                          placeholder="John Smith"
+                          value={cardName}
+                          onChange={(event) => {
+                            const value = event.target.value;
+                            setCardName(value);
+                            setErrors((current) => ({
+                              ...current,
+                              cardName:
+                                value && !/^[a-zA-Z\s]{2,}$/.test(value.trim())
+                                  ? "Please enter a valid name"
+                                  : "",
+                            }));
+                          }}
+                          required
+                        />
+                        <FieldError>{errors.cardName}</FieldError>
+                      </div>
+
+                      <div className="grid gap-5 sm:grid-cols-2">
+                        <div>
+                          <label htmlFor="expiry-date" className="mb-2 block text-sm font-semibold">
+                            Expiry Date
+                          </label>
+                          <input
+                            id="expiry-date"
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="cc-exp"
+                            className={inputClass(errors.expiryDate)}
+                            placeholder="MM/YY"
+                            value={expiryDate}
+                            onChange={(event) => {
+                              let value = event.target.value
+                                .replace(/[^\d/]/g, "")
+                                .slice(0, 5);
+                              if (value.length === 2 && !value.includes("/")) {
+                                value += "/";
+                              }
+                              setExpiryDate(value);
+                              setErrors((current) => ({
+                                ...current,
+                                expiryDate: value ? validateExpiry(value) : "",
+                              }));
+                            }}
+                            maxLength={5}
+                            required
+                          />
+                          <FieldError>{errors.expiryDate}</FieldError>
+                        </div>
+
+                        <div>
+                          <label htmlFor="cvv" className="mb-2 block text-sm font-semibold">
+                            CVV
+                          </label>
+                          <input
+                            id="cvv"
+                            type="password"
+                            inputMode="numeric"
+                            autoComplete="cc-csc"
+                            className={inputClass(errors.cvv)}
+                            placeholder="123"
+                            value={cvv}
+                            onChange={(event) => {
+                              const value = event.target.value
+                                .replace(/\D/g, "")
+                                .slice(0, 4);
+                              setCvv(value);
+                              setErrors((current) => ({
+                                ...current,
+                                cvv:
+                                  value && !/^\d{3,4}$/.test(value)
+                                    ? "Invalid CVV"
+                                    : "",
+                              }));
+                            }}
+                            maxLength={4}
+                            required
+                          />
+                          <FieldError>{errors.cvv}</FieldError>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="receipt-email" className="mb-2 block text-sm font-semibold">
+                          Email (for receipt)
+                        </label>
+                        <input
+                          id="receipt-email"
+                          type="email"
+                          autoComplete="email"
+                          className={inputClass(errors.email)}
+                          placeholder="your@email.com"
+                          value={email}
+                          onChange={(event) => {
+                            const value = event.target.value;
+                            setEmail(value);
+                            setErrors((current) => ({
+                              ...current,
+                              email:
+                                value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+                                  ? "Invalid email address"
+                                  : "",
+                            }));
+                          }}
+                          required
+                        />
+                        <FieldError>{errors.email}</FieldError>
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <button
+                    type="submit"
+                    disabled={isProcessing || Boolean(confirmation)}
+                    className="mt-7 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#5c6ac4] px-5 text-sm font-bold text-white shadow-lg shadow-[#5c6ac4]/20 transition-colors hover:bg-[#4d5ab5] focus:outline-none focus:ring-2 focus:ring-[#5c6ac4] focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:shadow-none"
+                  >
+                    <LockKeyhole className="h-4 w-4" aria-hidden="true" />
+                    {isProcessing ? "Processing payment…" : `Pay ₹${total.toFixed(2)}`}
+                  </button>
+                  <p className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500">
+                    <ShieldCheck className="h-4 w-4 text-green-600" aria-hidden="true" />
+                    Secure checkout protected by CineTix
+                  </p>
+                </form>
               </section>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Payment Form */}
-                <div className="lg:col-span-2">
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    {/* Payment method tabs */}
-                    <div className="mb-6">
-                      <div className="flex border-b">
-                        <button
-                          className={`py-2 px-4 font-medium ${
-                            paymentMethod === "card"
-                              ? "border-b-2 border-[#5c6ac4] text-[#5c6ac4]"
-                              : "text-gray-500"
-                          }`}
-                          onClick={() => setPaymentMethod("card")}
-                        >
-                          Credit / Debit Card
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Card payment form */}
-                    {paymentMethod === "card" && (
-                      <form onSubmit={handleSubmit}>
-                        <div className="space-y-4">
-                          {/* Card Number */}
-                          <div>
-                            <label className="block text-gray-700 text-sm font-medium mb-2">
-                              Card Number
-                            </label>
-                            <div className="relative">
-                              <input
-                                type="text"
-                                className={`w-full px-4 py-2 border ${
-                                  cardNumberError
-                                    ? "border-red-500"
-                                    : "border-gray-300"
-                                } rounded-md focus:outline-none focus:ring-2 focus:ring-[#5c6ac4] focus:border-transparent`}
-                                placeholder="1234 5678 9012 3456"
-                                value={cardNumber}
-                                onChange={(e) => {
-                                  const formatted = formatCardNumber(
-                                    e.target.value
-                                  );
-                                  setCardNumber(formatted);
-                                  // Basic numeric validation only (13 to 16 digits)
-                                  const cleaned = formatted.replace(/\s+/g, "");
-                                  const isValid = /^[0-9]{13,16}$/.test(
-                                    cleaned
-                                  );
-                                  setCardNumberError(
-                                    !isValid && cleaned.length > 0
-                                      ? "Invalid card number"
-                                      : ""
-                                  );
-                                }}
-                                maxLength={19}
-                                required
-                              />
-                              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-5 w-5 text-gray-400"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                                  />
-                                </svg>
-                              </div>
-                            </div>
-                            {cardNumberError && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {cardNumberError}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Cardholder Name */}
-                          <div>
-                            <label className="block text-gray-700 text-sm font-medium mb-2">
-                              Cardholder Name
-                            </label>
-                            <input
-                              type="text"
-                              className={`w-full px-4 py-2 border ${
-                                cardNameError
-                                  ? "border-red-500"
-                                  : "border-gray-300"
-                              } rounded-md focus:outline-none focus:ring-2 focus:ring-[#5c6ac4] focus:border-transparent`}
-                              placeholder="John Smith"
-                              value={cardName}
-                              onChange={(e) => {
-                                setCardName(e.target.value);
-                                // Validate name (at least 2 characters, only letters and spaces)
-                                const isValid = /^[a-zA-Z\s]{2,}$/.test(
-                                  e.target.value.trim()
-                                );
-                                setCardNameError(
-                                  !isValid && e.target.value.length > 0
-                                    ? "Please enter a valid name"
-                                    : ""
-                                );
-                              }}
-                              required
-                            />
-                            {cardNameError && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {cardNameError}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            {/* Expiry Date */}
-                            <div>
-                              <label className="block text-gray-700 text-sm font-medium mb-2">
-                                Expiry Date
-                              </label>
-                              <input
-                                type="text"
-                                className={`w-full px-4 py-2 border ${
-                                  expiryDateError
-                                    ? "border-red-500"
-                                    : "border-gray-300"
-                                } rounded-md focus:outline-none focus:ring-2 focus:ring-[#5c6ac4] focus:border-transparent`}
-                                placeholder="MM/YY"
-                                value={expiryDate}
-                                onChange={(e) => {
-                                  let value = e.target.value;
-                                  // Auto-insert slash after 2 digits
-                                  if (
-                                    value.length === 2 &&
-                                    !value.includes("/")
-                                  ) {
-                                    value = value + "/";
-                                  }
-                                  setExpiryDate(value);
-
-                                  // Validate expiry date
-                                  if (value.length === 5) {
-                                    const [month, year] = value.split("/");
-                                    const currentYear =
-                                      new Date().getFullYear() % 100;
-                                    const currentMonth =
-                                      new Date().getMonth() + 1;
-
-                                    const isValid =
-                                      /^\d{2}$/.test(month) &&
-                                      /^\d{2}$/.test(year) &&
-                                      parseInt(month) >= 1 &&
-                                      parseInt(month) <= 12 &&
-                                      (parseInt(year) > currentYear ||
-                                        (parseInt(year) === currentYear &&
-                                          parseInt(month) >= currentMonth));
-
-                                    setExpiryDateError(
-                                      !isValid ? "Invalid expiry date" : ""
-                                    );
-                                  } else {
-                                    setExpiryDateError(
-                                      value.length > 0 ? "Invalid format" : ""
-                                    );
-                                  }
-                                }}
-                                maxLength={5}
-                                required
-                              />
-                              {expiryDateError && (
-                                <p className="text-red-500 text-xs mt-1">
-                                  {expiryDateError}
-                                </p>
-                              )}
-                            </div>
-
-                            {/* CVV */}
-                            <div>
-                              <label className="block text-gray-700 text-sm font-medium mb-2">
-                                CVV
-                              </label>
-                              <input
-                                type="text"
-                                className={`w-full px-4 py-2 border ${
-                                  cvvError
-                                    ? "border-red-500"
-                                    : "border-gray-300"
-                                } rounded-md focus:outline-none focus:ring-2 focus:ring-[#5c6ac4] focus:border-transparent`}
-                                placeholder="123"
-                                value={cvv}
-                                onChange={(e) => {
-                                  // Only allow numbers
-                                  const value = e.target.value.replace(
-                                    /\D/g,
-                                    ""
-                                  );
-                                  setCvv(value);
-                                  // Validate CVV (3 or 4 digits)
-                                  const isValid = /^[0-9]{3,4}$/.test(value);
-                                  setCvvError(
-                                    !isValid && value.length > 0
-                                      ? "Invalid CVV"
-                                      : ""
-                                  );
-                                }}
-                                maxLength={4}
-                                required
-                              />
-                              {cvvError && (
-                                <p className="text-red-500 text-xs mt-1">
-                                  {cvvError}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Email */}
-                          <div>
-                            <label className="block text-gray-700 text-sm font-medium mb-2">
-                              Email (for receipt)
-                            </label>
-                            <input
-                              type="email"
-                              className={`w-full px-4 py-2 border ${
-                                emailError
-                                  ? "border-red-500"
-                                  : "border-gray-300"
-                              } rounded-md focus:outline-none focus:ring-2 focus:ring-[#5c6ac4] focus:border-transparent`}
-                              placeholder="your@email.com"
-                              value={email}
-                              onChange={(e) => {
-                                setEmail(e.target.value);
-                                // Basic email validation
-                                const isValid =
-                                  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-                                    e.target.value
-                                  );
-                                setEmailError(
-                                  !isValid && e.target.value.length > 0
-                                    ? "Invalid email address"
-                                    : ""
-                                );
-                              }}
-                              required
-                            />
-                            {emailError && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {emailError}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="mt-8">
-                          <button
-                            type="submit"
-                            className={`w-full py-3 font-medium rounded-md transition-colors ${
-                              isProcessing
-                                ? "bg-gray-400 text-white cursor-not-allowed"
-                                : "bg-[#5c6ac4] text-white hover:bg-opacity-90"
-                            }`}
-                            disabled={isProcessing}
-                          >
-                            {isProcessing
-                              ? "Processing..."
-                              : `Pay ₹${total.toFixed(2)}`}
-                          </button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
-                </div>
-
-                {/* Order Summary */}
-                <div className="lg:col-span-1">
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h2 className="text-lg font-semibold mb-4">
-                      Order Summary
-                    </h2>
-
-                    <div className="border-b pb-4 mb-4">
-                      <h3 className="font-medium mb-2">{movie.title}</h3>
-                      <p className="text-sm text-gray-600 mb-1">
-                        {theater.name} - {theater.screen}
-                      </p>
-                      <p className="text-sm text-gray-600 mb-1">
-                        {selectedDate || bookingData.dateDisplay} |{" "}
-                        {selectedTime || bookingData.showTime}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {selectedSeats.length} seat
-                        {selectedSeats.length !== 1 ? "s" : ""}:{" "}
-                        {selectedSeats.join(", ")}
-                      </p>
-                    </div>
-
-                    <div className="space-y-2 mb-4">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">
-                          Tickets ({selectedSeats.length} × ₹
-                          {ticketPrice.toFixed(2)})
-                        </span>
-                        <span>₹{subtotal.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Service Fee</span>
-                        <span>₹{serviceFee.toFixed(2)}</span>
-                      </div>
-                    </div>
-
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between font-semibold">
-                        <span>Total</span>
-                        <span>₹{total.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : (
-            // Payment Success
-            <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-8 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-green-500"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
+              <aside
+                aria-label="Order summary"
+                className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm lg:sticky lg:top-24"
+              >
+                {movie.image && (
+                  <img
+                    src={movie.image}
+                    alt=""
+                    className="h-40 w-full object-cover"
                   />
-                </svg>
-              </div>
-
-              <h2 className="text-2xl font-bold mb-2">Payment Successful!</h2>
-              <p className="text-gray-600 mb-6">
-                Your booking is confirmed. Redirecting to your tickets...
-              </p>
-
-              <div className="flex justify-center">
-                <div className="h-2 w-24 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#5c6ac4] animate-pulse"></div>
+                )}
+                <div className="p-5 sm:p-6">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[#5c6ac4]">
+                    Your booking
+                  </p>
+                  <h2 className="mt-1 text-xl font-bold">{movie.title}</h2>
+                  <div className="mt-5 space-y-3 border-b border-gray-100 pb-5 text-sm text-gray-600">
+                    <p className="flex items-start gap-2">
+                      <MapPin className="mt-0.5 h-4 w-4 text-[#5c6ac4]" aria-hidden="true" />
+                      <span>{theater.name} · {theater.screen}</span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 text-[#5c6ac4]" aria-hidden="true" />
+                      {selectedDate}
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <Clock3 className="h-4 w-4 text-[#5c6ac4]" aria-hidden="true" />
+                      {selectedTime}
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {selectedSeats.map((seat) => (
+                        <span
+                          key={seat}
+                          className="rounded-lg bg-[#eef0ff] px-2.5 py-1 text-xs font-bold text-[#4d5ab5]"
+                        >
+                          {seat}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-5 space-y-3">
+                    <SummaryRow
+                      label={`Tickets (${selectedSeats.length} × ₹${TICKET_PRICE.toFixed(2)})`}
+                      value={`₹${subtotal.toFixed(2)}`}
+                    />
+                    <SummaryRow
+                      label="Service Fee"
+                      value={`₹${serviceFee.toFixed(2)}`}
+                    />
+                    <div className="border-t border-dashed border-gray-200 pt-4">
+                      <SummaryRow
+                        label="Total"
+                        value={`₹${total.toFixed(2)}`}
+                        strong
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </aside>
             </div>
-          )}
-        </div>
+          </>
+        )}
       </main>
-
       <Footer />
+
+      {confirmation && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-4"
+          role="presentation"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Payment Successful"
+            className="w-full max-w-sm rounded-2xl border border-green-100 bg-white p-6 text-center shadow-2xl"
+          >
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-50">
+              <CheckCircle2 className="h-8 w-8 text-green-600" aria-hidden="true" />
+            </span>
+            <p className="mt-4 text-lg font-bold text-gray-950">Payment Successful</p>
+            <p className="mt-1 text-sm text-gray-600">Opening your tickets…</p>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default PaymentPage;
+}

@@ -1,4 +1,4 @@
-import { fetchAvailability, BookingApiError } from "./bookingApi";
+import { createBooking, fetchAvailability, BookingApiError } from "./bookingApi";
 
 beforeEach(() => { global.fetch = jest.fn(); });
 
@@ -14,4 +14,28 @@ test("fetches show availability without cache", async () => {
 test("preserves structured API errors", async () => {
   fetch.mockResolvedValue({ ok: false, status: 409, json: async () => ({ code: "SEAT_CONFLICT", message: "Taken", conflictingSeats: ["A1"] }) });
   await expect(fetchAvailability({})).rejects.toMatchObject({ constructor: BookingApiError, status: 409, code: "SEAT_CONFLICT" });
+});
+
+test("creates one normalized booking request", async () => {
+  fetch.mockResolvedValue({
+    ok: true,
+    json: async () => ({ success: true, data: { _id: "ticket-1" } }),
+  });
+
+  await createBooking(
+    {
+      movie_id: "507f1f77bcf86cd799439011",
+      date: "2026-07-28T00:00:00.000Z",
+      seats: ["A1"],
+    },
+    "token"
+  );
+
+  expect(fetch).toHaveBeenCalledWith(
+    expect.stringContaining("/tickets"),
+    expect.objectContaining({
+      method: "POST",
+      body: expect.stringContaining('"date":"2026-07-28"'),
+    })
+  );
 });
