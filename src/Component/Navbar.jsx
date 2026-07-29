@@ -6,9 +6,9 @@ import LogoutButton from "./LogoutButton";
 
 const NAV_ITEMS = [
   { label: "Home", to: "/", end: true },
-  { label: "Movies", to: "/movies" },
-  { label: "Theaters", to: "/theaters" },
-  { label: "Offers", to: "/offers" },
+  { label: "Movies", to: "/movies", end: true },
+  { label: "Theaters", to: "/theaters", end: true },
+  { label: "Offers", to: "/offers", end: true },
 ];
 
 function initialsFor(name, email) {
@@ -23,31 +23,23 @@ function initialsFor(name, email) {
       .join("")
       .toUpperCase();
   }
-  return String(email || "U").trim().charAt(0).toUpperCase() || "U";
+  return (
+    String(email || "U")
+      .trim()
+      .charAt(0)
+      .toUpperCase() || "U"
+  );
 }
 
 function DesktopNavItem({ label, to, end }) {
   return (
-    <NavLink
-      to={to}
-      end={end}
-      className={({ isActive }) =>
-        `group relative rounded-md px-1 py-2 text-sm font-medium ${
-          isActive ? "text-white" : "text-white/70"
-        }`
-      }
-    >
-      {({ isActive }) => (
-        <>
-          {label}
-          <span
-            aria-hidden="true"
-            className={`absolute inset-x-0 -bottom-0.5 h-0.5 origin-left rounded-full bg-[#7c88df] transition-transform duration-200 ${
-              isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
-            }`}
-          />
-        </>
-      )}
+    <NavLink to={to} end={end} className="group relative w-max text-white">
+      {label}
+
+      <span
+        aria-hidden="true"
+        className="absolute -bottom-1 left-0 h-[3px] w-0 rounded-full bg-[#8f9af0] transition-all duration-300 group-hover:w-full"
+      />
     </NavLink>
   );
 }
@@ -128,7 +120,7 @@ const Navbar = () => {
 
   const initials = useMemo(
     () => initialsFor(userName, userEmail),
-    [userEmail, userName]
+    [userEmail, userName],
   );
 
   const closeMenus = () => {
@@ -151,14 +143,16 @@ const Navbar = () => {
           onClick={closeMenus}
           className="rounded-md text-xl font-bold tracking-[-0.03em] text-white outline-none transition-opacity duration-200 hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#7c88df]"
         >
-          Cine<span className="text-[#8f9af0]">Tix</span>
+          CineTix
         </Link>
 
-        <div className="hidden items-center gap-7 md:flex lg:gap-9">
+        <ul className="hidden md:flex items-center gap-7 lg:gap-9 text-base font-medium">
           {NAV_ITEMS.map((item) => (
-            <DesktopNavItem key={item.to} {...item} />
+            <li key={item.to}>
+              <DesktopNavItem {...item} />
+            </li>
           ))}
-        </div>
+        </ul>
 
         <div className="flex items-center gap-2 sm:gap-3">
           {!isLoggedIn ? (
@@ -197,9 +191,7 @@ const Navbar = () => {
                       reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }
                     }
                     animate={{ opacity: 1, y: 0 }}
-                    exit={
-                      reduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }
-                    }
+                    exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
                     className="absolute right-0 mt-3 w-64 overflow-hidden rounded-2xl border border-white/10 bg-[#111214] p-2 shadow-2xl shadow-black/50"
                   >
@@ -259,9 +251,7 @@ const Navbar = () => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            initial={
-              reduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }
-            }
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
@@ -269,11 +259,7 @@ const Navbar = () => {
           >
             <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4 sm:px-6">
               {NAV_ITEMS.map((item) => (
-                <MobileNavItem
-                  key={item.to}
-                  {...item}
-                  onClick={closeMenus}
-                />
+                <MobileNavItem key={item.to} {...item} onClick={closeMenus} />
               ))}
               <div className="my-2 h-px bg-white/10" />
               {!isLoggedIn ? (
