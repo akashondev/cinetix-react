@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useMatch } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config/api";
 import { motion, useReducedMotion } from "framer-motion";
@@ -40,34 +40,65 @@ function Reveal({ children, className = "", reduceMotion }) {
   );
 }
 
-function MovieSection({ title, viewAllTo, movies, category, loading, error, emptyMessage, reduceMotion }) {
+function MovieSection({
+  title,
+  movies,
+  category,
+  initialLimit,
+  loading,
+  error,
+  emptyMessage,
+  reduceMotion,
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const visibleMovies = expanded ? movies : movies.slice(0, initialLimit);
+  const canExpand = movies.length > 0;
+
   return (
     <section aria-labelledby={`${category}-heading`} className="py-12 sm:py-16">
       <Reveal reduceMotion={reduceMotion}>
         <div className="mb-7 flex items-end justify-between gap-4 border-b border-gray-200 pb-4">
           <div>
-            <p className="mb-1 text-xs font-semibold uppercase text-[#5c6ac4]">CineTix selection</p>
-            <h2 id={`${category}-heading`} className="text-2xl font-bold text-gray-950 sm:text-3xl">{title}</h2>
+            <p className="mb-1 text-xs font-semibold uppercase text-[#5c6ac4]">
+              CineTix selection
+            </p>
+
+            <h2
+              id={`${category}-heading`}
+              className="text-2xl font-bold text-gray-950 sm:text-3xl"
+            >
+              {title}
+            </h2>
           </div>
-          <Link to={viewAllTo} className="flex shrink-0 items-center gap-1 text-sm font-semibold text-[#5c6ac4] hover:text-[#4d5ab5]">
-            View All <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
+
+          {canExpand && (
+            <button
+              type="button"
+              onClick={() => setExpanded((current) => !current)}
+              aria-expanded={expanded}
+              className="flex shrink-0 items-center gap-1 text-sm font-semibold text-[#5c6ac4] hover:text-[#4d5ab5]"
+            >
+              {expanded ? "Show Less" : "View All"}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
         </div>
       </Reveal>
 
       {loading ? (
         <div
-          className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-3 xl:grid-cols-4"
+          className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
           role="status"
           aria-label={`Loading ${title}`}
         >
-          {[0, 1, 2, 3].map((index) => (
+          {[0, 1, 2, 3, 4].map((index) => (
             <div
               key={index}
               data-testid="movie-card-skeleton"
               className="animate-pulse overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
             >
               <div className="aspect-[2/3] bg-gray-200" />
+
               <div className="space-y-3 p-4">
                 <div className="h-4 w-3/4 rounded bg-gray-200" />
                 <div className="h-3 w-1/2 rounded bg-gray-100" />
@@ -77,16 +108,38 @@ function MovieSection({ title, viewAllTo, movies, category, loading, error, empt
           ))}
         </div>
       ) : error ? (
-        <div className="border border-red-200 bg-red-50 px-4 py-8 text-center text-red-700">{error}</div>
+        <div className="border border-red-200 bg-red-50 px-4 py-8 text-center text-red-700">
+          {error}
+        </div>
       ) : movies.length > 0 ? (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-3 xl:grid-cols-4">
-          {movies.map((movie, index) => (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {visibleMovies.map((movie, index) => (
             <motion.div
               key={movie._id}
-              initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-              whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.35, delay: reduceMotion ? 0 : Math.min(index * 0.04, 0.16) }}
+              initial={
+                reduceMotion
+                  ? false
+                  : {
+                      opacity: 0,
+                      y: 14,
+                    }
+              }
+              whileInView={
+                reduceMotion
+                  ? undefined
+                  : {
+                      opacity: 1,
+                      y: 0,
+                    }
+              }
+              viewport={{
+                once: true,
+                amount: 0.15,
+              }}
+              transition={{
+                duration: 0.35,
+                delay: reduceMotion ? 0 : Math.min(index * 0.04, 0.16),
+              }}
               className="w-full"
             >
               <MovieCard {...movie} category={category} />
@@ -94,13 +147,16 @@ function MovieSection({ title, viewAllTo, movies, category, loading, error, empt
           ))}
         </div>
       ) : (
-        <div className="border border-gray-200 bg-white px-4 py-10 text-center text-gray-500">{emptyMessage}</div>
+        <div className="border border-gray-200 bg-white px-4 py-10 text-center text-gray-500">
+          {emptyMessage}
+        </div>
       )}
     </section>
   );
 }
 
 export default function HomePage() {
+  const isMoviesPage = useMatch("/movies");
   const [nowShowingMovies, setNowShowingMovies] = useState([]);
   const [comingSoonMovies, setComingSoonMovies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -114,8 +170,13 @@ export default function HomePage() {
         const response = await axios.get(`${API_URL}/movies`);
         const movieData = normalizeMovies(response.data);
         const classifiedMovies = classifyMoviesByReleaseDate(movieData);
-        setNowShowingMovies(classifiedMovies.nowShowing);
-        setComingSoonMovies(classifiedMovies.comingSoon);
+        setNowShowingMovies(classifiedMovies.nowShowing.slice(0, 15));
+        setComingSoonMovies(
+          [...classifiedMovies.comingSoon].sort((left, right) => {
+            if (left.originGroup === right.originGroup) return 0;
+            return left.originGroup === "indian" ? -1 : 1;
+          })
+        );
         setError(null);
       } catch (requestError) {
         console.error("Error fetching movies:", requestError);
@@ -133,6 +194,7 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-gray-50">
       <Navbar />
 
+      {!isMoviesPage && (
       <section className="overflow-hidden bg-black text-white" aria-labelledby="home-hero-heading">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-[1.1fr_0.9fr] md:items-center lg:px-8 lg:py-16">
           <motion.div
@@ -173,15 +235,16 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+      )}
 
       <main className="flex-grow">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <MovieSection title="Now Showing" viewAllTo="/movies" movies={nowShowingMovies} category="now-showing" loading={loading} error={error} emptyMessage="No movies currently showing. Check back soon!" reduceMotion={reduceMotion} />
+          <MovieSection title="Now Showing" movies={nowShowingMovies} category="now-showing" initialLimit={10} loading={loading} error={error} emptyMessage="No movies currently showing. Check back soon!" reduceMotion={reduceMotion} />
         </div>
 
         <div className="border-y border-gray-200 bg-white">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <MovieSection title="Coming Soon" viewAllTo="/coming-soon" movies={comingSoonMovies} category="coming-soon" loading={loading} error={error} emptyMessage="No upcoming movies announced yet. Stay tuned!" reduceMotion={reduceMotion} />
+            <MovieSection title="Coming Soon" movies={comingSoonMovies} category="coming-soon" initialLimit={5} loading={loading} error={error} emptyMessage="No upcoming movies announced yet. Stay tuned!" reduceMotion={reduceMotion} />
           </div>
         </div>
 

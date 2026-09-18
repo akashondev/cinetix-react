@@ -1,6 +1,25 @@
 export function normalizeMovies(data) {
   const movies = Array.isArray(data) ? data : data?.movies;
-  return Array.isArray(movies) ? movies : [];
+  return Array.isArray(movies)
+    ? movies.filter((movie) => movie && typeof movie === "object").map(withDisplayImages)
+    : [];
+}
+
+function withDisplayImages(movie) {
+  const normalized = { ...movie };
+  const image = movie.heroImageUrl || movie.image;
+  const banner = movie.posterUrl || movie.banner || movie.image;
+  if (image) normalized.image = image;
+  if (banner) normalized.banner = banner;
+  return normalized;
+}
+
+export function formatMovieRating(movie) {
+  const rating = Number(movie?.rating);
+  if (!Number.isFinite(rating) || rating <= 0) return "Not rated";
+  return movie?.source === "tmdb"
+    ? `${(Math.round(rating * 10) / 10).toFixed(1)}`
+    : `${rating}/5`;
 }
 
 const MONTHS = {
@@ -92,7 +111,7 @@ export function normalizeMovie(data) {
   if (!movie || Array.isArray(movie) || typeof movie !== "object") return null;
 
   return {
-    ...movie,
+    ...withDisplayImages(movie),
     genres: Array.isArray(movie.genres) ? movie.genres : [],
     cast: Array.isArray(movie.cast) ? movie.cast : [],
   };

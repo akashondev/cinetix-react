@@ -16,7 +16,7 @@ const movie = {
 test("now showing card keeps stable geometry and route", () => {
   render(<MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}><MovieCard {...movie} category="now-showing" /></MemoryRouter>);
   const card = screen.getByTestId("movie-card");
-  expect(card).toHaveClass("h-[30rem]", "w-full", "min-w-0");
+  expect(card).toHaveClass("h-[27rem]", "w-full", "min-w-0");
   expect(screen.getByRole("heading", { name: movie.title })).toHaveClass("truncate");
   expect(screen.getByRole("heading", { name: movie.title })).toHaveAttribute("title", movie.title);
   expect(screen.getByRole("link", { name: /book tickets/i })).toHaveAttribute("href", "/movie/movie-1");
@@ -52,4 +52,35 @@ test("falls back to the movie image when banner is empty", () => {
     "src",
     "/image.jpg"
   );
+});
+
+test("labels TMDB ratings and handles unavailable ratings", () => {
+  const { rerender } = render(
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MovieCard {...movie} source="tmdb" rating={8.16} />
+    </MemoryRouter>
+  );
+
+  const ratingBadge = screen.getByText("8.2").closest("span");
+  expect(ratingBadge).toBeInTheDocument();
+  expect(ratingBadge.querySelector("svg")).toBeInTheDocument();
+
+  rerender(
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MovieCard {...movie} source="tmdb" rating={null} />
+    </MemoryRouter>
+  );
+  const unavailableBadge = screen.getByText("N/A").closest("span");
+  expect(unavailableBadge).toBeInTheDocument();
+  expect(unavailableBadge.querySelector("svg")).not.toBeInTheDocument();
+});
+
+test("shows N/A without star for unavailable coming soon ratings", () => {
+  render(
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MovieCard {...movie} category="coming-soon" rating={null} />
+    </MemoryRouter>
+  );
+
+  expect(screen.getByText("N/A")).toBeInTheDocument();
 });

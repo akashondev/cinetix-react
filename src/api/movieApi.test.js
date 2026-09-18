@@ -1,4 +1,9 @@
-import { classifyMoviesByReleaseDate, normalizeMovie, normalizeMovies } from "./movieApi";
+import {
+  classifyMoviesByReleaseDate,
+  formatMovieRating,
+  normalizeMovie,
+  normalizeMovies,
+} from "./movieApi";
 
 const movie = { _id: "movie-1", title: "Movie" };
 
@@ -19,6 +24,29 @@ test("normalizes a single movie and its array fields", () => {
     cast: [],
   });
   expect(normalizeMovie(null)).toBeNull();
+});
+
+test("maps backend poster and backdrop fields into the existing UI contract", () => {
+  const tmdbMovie = {
+    ...movie,
+    posterUrl: "https://image.tmdb.org/t/p/w780/poster.jpg",
+    heroImageUrl: "https://image.tmdb.org/t/p/w1280/backdrop.jpg",
+  };
+
+  expect(normalizeMovies([tmdbMovie])[0]).toMatchObject({
+    banner: tmdbMovie.posterUrl,
+    image: tmdbMovie.heroImageUrl,
+  });
+  expect(normalizeMovie(tmdbMovie)).toMatchObject({
+    banner: tmdbMovie.posterUrl,
+    image: tmdbMovie.heroImageUrl,
+  });
+});
+
+test("formats TMDB ratings without IMDb or OMDb labels", () => {
+  expect(formatMovieRating({ source: "tmdb", rating: 8.16 })).toBe("8.2");
+  expect(formatMovieRating({ source: "tmdb", rating: null })).toBe("Not rated");
+  expect(formatMovieRating({ source: "manual", rating: 4.8 })).toBe("4.8/5");
 });
 
 test("classifies movies by release date instead of stale category", () => {

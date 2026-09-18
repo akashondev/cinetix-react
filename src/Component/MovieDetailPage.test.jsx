@@ -86,6 +86,7 @@ test("renders cinematic movie information with one trailer control", async () =>
   ).not.toBeInTheDocument();
   expect(screen.getByText("Denis Villeneuve")).toBeInTheDocument();
   expect(screen.getByText("Timothée Chalamet")).toBeInTheDocument();
+  expect(screen.queryByText("PG-13")).not.toBeInTheDocument();
 });
 
 test("opens and closes the trailer window from the hero", async () => {
@@ -156,10 +157,12 @@ test("preserves showtime booking data and seat navigation", async () => {
   fireEvent.click(screen.getByRole("button", { name: "10:30 AM" }));
 
   expect(screen.getByText("Seat selection destination")).toBeInTheDocument();
-  expect(JSON.parse(localStorage.getItem("selectedMovie"))).toMatchObject({
+  const selectedMovie = JSON.parse(localStorage.getItem("selectedMovie"));
+  expect(selectedMovie).toMatchObject({
     movieId: "movie-1",
     movieTitle: "Dune: Part Two",
     theaterName: "CineWorld - Downtown",
     showTime: "10:30 AM",
   });
+  expect(selectedMovie).not.toHaveProperty("movieCertificate");
 });

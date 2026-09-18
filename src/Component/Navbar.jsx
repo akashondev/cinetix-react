@@ -1,14 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { LogIn, Menu, Ticket, X } from "lucide-react";
+import { Menu, Ticket, X } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 
 const NAV_ITEMS = [
   { label: "Home", to: "/", end: true },
-  { label: "Movies", to: "/movies", end: true },
-  { label: "Theaters", to: "/theaters", end: true },
-  { label: "Offers", to: "/offers", end: true },
+  { label: "Movies", to: "/movies", end: true }
 ];
 
 function initialsFor(name, email) {
@@ -162,7 +160,6 @@ const Navbar = () => {
                 onClick={closeMenus}
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-[#7c88df]/60 bg-[#5c6ac4]/15 px-4 text-sm font-semibold text-white transition-colors duration-200 hover:border-[#8f9af0] hover:bg-[#5c6ac4]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8f9af0] focus-visible:ring-offset-2 focus-visible:ring-offset-black"
               >
-                <LogIn className="h-4 w-4" aria-hidden="true" />
                 Login
               </Link>
             </motion.div>

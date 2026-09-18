@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config/api";
-import { normalizeMovies } from "../api/movieApi";
+import { formatMovieRating, normalizeMovies } from "../api/movieApi";
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -18,7 +18,6 @@ const AdminPage = () => {
     rating: "",
     duration: "",
     genres: "",
-    certificate: "",
     releaseDate: "",
     director: "",
     cast: "",
@@ -44,7 +43,7 @@ const AdminPage = () => {
     }
 
     try {
-      const response = await fetch(`${API_URL}/movies`, {
+      const response = await fetch(`${API_URL}/movies?includeInactive=true`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -102,7 +101,7 @@ const AdminPage = () => {
 
       if (!response.ok) throw new Error("Operation failed");
 
-      fetchMovies();
+      await fetchMovies();
       setFormData({
         id: "",
         title: "",
@@ -111,7 +110,6 @@ const AdminPage = () => {
         rating: "",
         duration: "",
         genres: "",
-        certificate: "",
         releaseDate: "",
         director: "",
         cast: "",
@@ -136,7 +134,6 @@ const AdminPage = () => {
       rating: movie.rating,
       duration: movie.duration,
       genres: movie.genres.join(", "),
-      certificate: movie.certificate,
       releaseDate: movie.releaseDate,
       director: movie.director,
       cast: movie.cast.join(", "),
@@ -158,7 +155,7 @@ const AdminPage = () => {
       });
 
       if (!response.ok) throw new Error("Delete failed");
-      fetchMovies();
+      await fetchMovies();
     } catch (err) {
       console.error(err);
     }
@@ -436,12 +433,12 @@ const AdminPage = () => {
                                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                 </svg>
                                 <span className="ml-1 text-sm">
-                                  {movie.rating}
+                                  {formatMovieRating(movie)}
                                 </span>
                               </div>
                             </div>
                             <div className="text-sm text-gray-500 mb-2">
-                              {movie.duration} • {movie.certificate}
+                              {movie.duration}
                             </div>
                             <div className="text-xs mb-2 capitalize text-gray-600">
                               {movie.category === "nowShowing"
@@ -478,7 +475,7 @@ const AdminPage = () => {
                         <tr key={movie._id} className="text-sm border-b">
                           <td className="py-2">{movie.title}</td>
                           <td className="py-2 capitalize">{movie.category}</td>
-                          <td className="py-2">{movie.rating}</td>
+                          <td className="py-2">{formatMovieRating(movie)}</td>
                           <td className="py-2">{movie.releaseDate}</td>
                           <td className="py-2">
                             <button
@@ -593,19 +590,6 @@ const AdminPage = () => {
                           type="text"
                           name="genres"
                           value={formData.genres}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border rounded focus:ring-indigo-500 focus:border-indigo-500"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Certificate
-                        </label>
-                        <input
-                          type="text"
-                          name="certificate"
-                          value={formData.certificate}
                           onChange={handleInputChange}
                           className="w-full p-2 border rounded focus:ring-indigo-500 focus:border-indigo-500"
                           required
@@ -746,7 +730,7 @@ const AdminPage = () => {
                                 ? "Now Showing"
                                 : "Coming Soon"}
                             </td>
-                            <td className="py-3">{movie.rating}</td>
+                            <td className="py-3">{formatMovieRating(movie)}</td>
                             <td className="py-3">{movie.releaseDate}</td>
                             <td className="py-3">
                               <button

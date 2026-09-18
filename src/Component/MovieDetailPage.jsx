@@ -10,7 +10,7 @@ import {
   Ticket,
 } from "lucide-react";
 import { API_URL } from "../config/api";
-import { normalizeMovie } from "../api/movieApi";
+import { formatMovieRating, normalizeMovie } from "../api/movieApi";
 import TrailerModal from "./TrailerModal";
 import { getYouTubeEmbedUrl } from "./trailerUrl";
 
@@ -160,7 +160,6 @@ const MovieDetailPage = () => {
       movieRating: movie.rating,
       movieDuration: movie.duration,
       movieGenres: movie.genres,
-      movieCertificate: movie.certificate,
 
       // Date information
       dateIndex: selectedDate,
@@ -358,7 +357,7 @@ const MovieDetailPage = () => {
                     >
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
-                    <span>{movie.rating}/5</span>
+                    <span>{formatMovieRating(movie)}</span>
                   </div>
 
                   <div className="flex items-center rounded-md border border-white/15 bg-black/40 px-3 py-1.5 text-white/85">
@@ -377,10 +376,6 @@ const MovieDetailPage = () => {
                       />
                     </svg>
                     <span>{movie.duration}</span>
-                  </div>
-
-                  <div className="rounded-md border border-white/15 bg-black/40 px-3 py-1.5 text-white/85">
-                    {movie.certificate}
                   </div>
 
                   {movie.genres.map((genre, index) => (
